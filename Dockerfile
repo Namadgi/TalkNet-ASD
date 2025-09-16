@@ -15,7 +15,7 @@ RUN apt-get update \
     wget \
     && rm -rf /var/lib/apt/lists/* \
     && cd /tmp \
-    && curl -O https://bootstrap.pypa.io/get-pip.py \
+    && curl -O https://bootstrap.pypa.io/3.8/get-pip.py \
     && python3 get-pip.py \
     && rm get-pip.py
 
@@ -65,11 +65,18 @@ RUN apt-get -y update
 RUN apt-get -y upgrade
 RUN apt-get install -y ffmpeg
 
-RUN mkdir /home/dependencies
-RUN cd /home/dependencies && \
-    git clone https://github.com/hhj1897/face_detection.git && \
+RUN pip install gdown
+
+RUN mkdir /home/dependencies && \
+    cd /home/dependencies && \
+    GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/hhj1897/face_detection.git && \
     cd /home/dependencies/face_detection && \
-    git lfs pull && \
+    gdown https://drive.google.com/uc?id=15zP8BP-5IvWXWZoYTNdvUJUiBqZ1hxu1 && \
+    gdown https://drive.google.com/uc?id=14KX6VqF69MdSPk3Tr9PlDYbq7ArpdNUW && \
+    gdown https://drive.google.com/uc?id=1KafnHz7ccT-3IyddBsL5yi2xGtxAKypt && \
+    mv mobilenet0.25_Final.pth ibug/face_detection/retina_face/weights/ && \
+    mv Resnet50_Final.pth      ibug/face_detection/retina_face/weights/ && \
+    mv sfd_face.pth            ibug/face_detection/s3fd/weights/s3fd_weights.pth && \
     pip install -e .
 
 RUN pip install setuptools==69.5.1
@@ -97,4 +104,4 @@ USER appuser
 EXPOSE 8080
 
 # Run the application
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "2"]

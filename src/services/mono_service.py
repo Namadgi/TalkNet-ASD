@@ -21,7 +21,7 @@ class MonoService:
         self.initialized = False
         self.device = None
         self.model = None
-        self.processing_lock = asyncio.Lock()
+        # self.processing_lock = asyncio.Lock()
         self.initialize()
 
     def initialize(self):
@@ -40,18 +40,18 @@ class MonoService:
         """
         Asynchronously process video with lock to ensure sequential processing
         """
-        async with self.processing_lock:
-            try:
-                X, v_path, a_path = self.preprocess(data)
-                Y = self.inference(X, v_path, a_path)
+        # async with self.processing_lock:
+        try:
+            X, v_path, a_path = self.preprocess(data)
+            Y = self.inference(X, v_path, a_path)
 
-                if len(Y) == 0:
-                    return self.form_response(code=2)
+            if len(Y) == 0:
+                return self.form_response(code=2)
 
-                res = self.postprocess(Y)
-                return self.form_response(result=res)
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=str(e))
+            res = self.postprocess(Y)
+            return self.form_response(result=res)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
 
     def preprocess(self, data: Any) -> Tuple[Optional[np.ndarray], Optional[str], Optional[str]]:
         """
