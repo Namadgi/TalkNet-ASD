@@ -15,7 +15,7 @@ RUN apt-get update \
     wget \
     && rm -rf /var/lib/apt/lists/* \
     && cd /tmp \
-    && curl -O https://bootstrap.pypa.io/3.8/get-pip.py \
+    && curl -O https://bootstrap.pypa.io/pip/3.8/get-pip.py \
     && python3 get-pip.py \
     && rm get-pip.py
 
