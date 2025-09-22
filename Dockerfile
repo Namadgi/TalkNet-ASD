@@ -54,6 +54,15 @@ RUN apt-get update && apt-get install --no-install-recommends -y  \
 COPY requirements.txt /home/model-server/requirements.txt
 RUN pip install --no-cache-dir -r /home/model-server/requirements.txt
 
+# OpenTelemetry (GCP exporters)
+RUN pip install \
+    opentelemetry-api \
+    opentelemetry-sdk \
+    opentelemetry-exporter-gcp-trace \
+    opentelemetry-exporter-gcp-monitoring \
+    google-cloud-trace \
+    google-cloud-monitoring
+
 # Add user for execute the commands 
 RUN useradd -m model-server
 
@@ -92,10 +101,20 @@ WORKDIR /home/app
 # Copy application code
 COPY src/ /home/app/src/
 COPY app.py /home/app/
+COPY docker-entrypoint.sh /home/app/docker-entrypoint.sh
+RUN chmod +x /home/app/docker-entrypoint.sh
+
+# Configure OpenTelemetry env (sane defaults; override at deploy time)
+ENV OTEL_ENV=gcp
+ENV OTEL_SERVICE_NAME=mono-service
+ENV OTEL_TRACES_EXPORTER=cloud_trace
+ENV OTEL_METRICS_EXPORTER=cloud_monitoring
 
 # Create user for running the application
 RUN useradd -m appuser && \
     chown -R appuser:appuser /home/app
+
+ENV GOOGLE_CLOUD_PROJECT=biometry-416410
 
 # Switch to non-root user
 USER appuser
@@ -104,4 +123,5 @@ USER appuser
 EXPOSE 8080
 
 # Run the application
+ENTRYPOINT ["/home/app/docker-entrypoint.sh"]
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "2"]
