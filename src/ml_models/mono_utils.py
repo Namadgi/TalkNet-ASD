@@ -26,8 +26,12 @@ def postprocess_det(Y, v_path, a_path) -> dict:
     track = track_shot(res_bboxes)
     if isinstance(track, list):
         return []
-    cur_time = time.time()    
-    res = crop_video(track, v_path, a_path)
+    cur_time = time.time()
+    try:
+        res = crop_video(track, v_path, a_path)
+    except (IndexError, KeyError, ValueError) as crop_err:
+        print(f'Crop guard hit: {crop_err}')
+        return []
     print('FC:', time.time() - cur_time)
     return res
     
@@ -88,6 +92,8 @@ def crop_video(track, video_path, audio_path) -> dict:
     # CPU: crop the face clips
 
     dets = {'x': [], 'y': [], 's': []}
+    if 'bbox' not in track or 'frame' not in track:
+        raise ValueError('Track data missing bbox or frame information')
     for det in track['bbox']: # Read the tracks
         dets['s'].append(max((det[3] - det[1]), (det[2] - det[0])) / 2) 
         dets['y'].append((det[1] + det[3]) / 2) # crop center x 
@@ -129,7 +135,10 @@ def crop_video(track, video_path, audio_path) -> dict:
     for fidx, frame in enumerate(track['frame']):
         bs  = dets['s'][fidx]   # Detection box size
         bsi = int(bs * (1 + 2 * CROP_SCALE))  # Pad videos by this amount 
-        image = frames[frame]
+        try:
+            image = frames[frame]
+        except IndexError as e:
+            raise IndexError(f'Frame index {frame} is outside the available range ({len(frames)} frames)') from e
         image = np.pad(
                 image, 
                 ((bsi, bsi), (bsi, bsi), (0, 0)),
@@ -147,6 +156,8 @@ def crop_video(track, video_path, audio_path) -> dict:
     
     video_out  = 'sync.avi' 
     audio_out  = 'sync.wav'
+    if len(track['frame']) == 0:
+        raise ValueError('Track contains no frame indices')
     audioStart = (track['frame'][0]) / 25
     audioEnd   = (track['frame'][-1]+1) / 25
     

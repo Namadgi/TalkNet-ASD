@@ -202,7 +202,12 @@ class MonoService:
                     span.set_status(Status(StatusCode.ERROR, "No instances provided"))
                     raise HTTPException(status_code=400, detail="No instances provided in GCS request")
 
-                instance = gcs_request.instances[0]
+                try:
+                    instance = gcs_request.instances[0]
+                except (IndexError, TypeError) as e:
+                    span.record_exception(e)
+                    span.set_status(Status(StatusCode.ERROR, "No usable instances provided"))
+                    raise HTTPException(status_code=400, detail="No valid instances provided in GCS request")
                 if not instance.token or not instance.bucket_name or not instance.object_name:
                     span.set_status(Status(StatusCode.ERROR, "Missing GCS parameters"))
                     raise HTTPException(status_code=400, detail="Missing required GCS parameters")
@@ -281,7 +286,13 @@ class MonoService:
             try:
                 data_filename = os.path.abspath(video_path)
                 start_ts = time.time()
-                video = read_video(data_filename, end_pts=10, pts_unit="sec")[0].numpy()
+                video_tensors = read_video(data_filename, end_pts=10, pts_unit="sec")
+                try:
+                    video = video_tensors[0].numpy()
+                except (IndexError, TypeError, AttributeError) as ie:
+                    read_span.record_exception(ie)
+                    read_span.set_status(Status(StatusCode.ERROR, "Video stream missing"))
+                    raise HTTPException(status_code=500, detail="Failed to extract video stream from processed file")
                 duration = time.time() - start_ts
                 read_span.set_attribute("read_duration_seconds", duration)
                 read_span.set_status(Status(StatusCode.OK))
@@ -368,9 +379,16 @@ class MonoService:
             else:
                 score = round(50 + (result - 10) * 5 / 9, 2)
 
+            try:
+                description = descriptions[code]
+            except (IndexError, TypeError):
+                description = "Unknown response state"
+                span.set_status(Status(StatusCode.ERROR, "Invalid response code generated"))
+                span.set_attribute("response.code_invalid", True)
+
             response = ResponseModel(
                 code=code,
-                description=descriptions[code],
+                description=description,
                 result=result,
                 score=score
             )
