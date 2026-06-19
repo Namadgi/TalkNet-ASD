@@ -1,4 +1,5 @@
 import json
+import logging
 import cv2
 import time
 import os
@@ -13,7 +14,9 @@ from src.ml_models.mono import Mono
 from torchvision.io import read_video
 
 # OpenTelemetry imports
+import uuid
 from opentelemetry import trace, metrics
+from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
@@ -37,8 +40,18 @@ class MonoService:
 
     def _setup_telemetry(self) -> None:
         """Initialize OpenTelemetry tracer and meter for GCP."""
+        # Identify instances and workers uniquely using Cloud Run Instance ID and PID
+        instance_id = os.getenv("CLOUD_RUN_INSTANCE", os.getenv("HOSTNAME", str(uuid.uuid4())))
+        process_id = os.getpid()
+        host_id = f"{instance_id}-{process_id}"
+
+        resource = Resource.create({
+            "service.name": "ml-asd",
+            "host.id": host_id
+        })
+
         # Tracing
-        trace.set_tracer_provider(TracerProvider())
+        trace.set_tracer_provider(TracerProvider(resource=resource))
         tracer_provider = trace.get_tracer_provider()
         tracer_provider.add_span_processor(BatchSpanProcessor(CloudTraceSpanExporter()))
         self.tracer = trace.get_tracer(__name__)
@@ -48,7 +61,7 @@ class MonoService:
             exporter=CloudMonitoringMetricsExporter(),
             export_interval_millis=60000,
         )
-        metrics.set_meter_provider(MeterProvider(metric_readers=[reader]))
+        metrics.set_meter_provider(MeterProvider(metric_readers=[reader], resource=resource))
         self.meter = metrics.get_meter(__name__)
 
         # Metric instruments
@@ -235,7 +248,7 @@ class MonoService:
                     download_span.set_attribute("download_duration_seconds", duration)
                     download_span.set_attribute("download_success", True)
 
-        print('DL: ', time.time() - cur_time)
+        logging.info(f"DL: {time.time() - cur_time:.4f}s")
 
         # Process video with ffmpeg
         with self.tracer.start_as_current_span("ffmpeg_transcoding") as ffmpeg_span:
@@ -275,7 +288,7 @@ class MonoService:
                 ffmpeg_span.set_status(Status(StatusCode.ERROR, "FFmpeg transcoding failed"))
                 raise HTTPException(status_code=500, detail="Failed to process video with FFmpeg")
 
-        print('VP: ', time.time() - cur_time)
+        logging.info(f"VP: {time.time() - cur_time:.4f}s")
 
         # Read video data
         video_path = os.path.join(os.getcwd(), VIDEO_OUTPUT)
@@ -296,7 +309,7 @@ class MonoService:
                 duration = time.time() - start_ts
                 read_span.set_attribute("read_duration_seconds", duration)
                 read_span.set_status(Status(StatusCode.OK))
-                print('IP:', time.time() - cur_time)
+                logging.info(f"IP: {time.time() - cur_time:.4f}s")
                 return video, video_path, audio_path
             except Exception as e:
                 read_span.record_exception(e)
