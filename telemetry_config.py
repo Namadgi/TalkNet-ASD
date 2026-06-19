@@ -37,9 +37,21 @@ def setup_gcp_telemetry():
         from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
         from opentelemetry.exporter.cloud_trace import CloudTraceSpanExporter
         from opentelemetry.exporter.cloud_monitoring import CloudMonitoringMetricsExporter
+        from opentelemetry.sdk.resources import Resource
+        import uuid
+
+        # Differentiate instances and workers using Instance ID and PID
+        instance_id = os.getenv("CLOUD_RUN_INSTANCE", os.getenv("HOSTNAME", str(uuid.uuid4())))
+        process_id = os.getpid()
+        host_id = f"{instance_id}-{process_id}"
+
+        resource = Resource.create({
+            "service.name": os.getenv("OTEL_SERVICE_NAME", "ml-asd"),
+            "host.id": host_id
+        })
 
         # Tracing
-        trace.set_tracer_provider(TracerProvider())
+        trace.set_tracer_provider(TracerProvider(resource=resource))
         tracer_provider = trace.get_tracer_provider()
         tracer_provider.add_span_processor(
             BatchSpanProcessor(CloudTraceSpanExporter())
@@ -47,7 +59,8 @@ def setup_gcp_telemetry():
 
         # Metrics
         metrics.set_meter_provider(MeterProvider(
-            metric_readers=[PeriodicExportingMetricReader(CloudMonitoringMetricsExporter())]
+            metric_readers=[PeriodicExportingMetricReader(CloudMonitoringMetricsExporter())],
+            resource=resource
         ))
 
         print("✅ OpenTelemetry configured for GCP (Cloud Trace + Cloud Monitoring)")
