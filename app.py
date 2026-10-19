@@ -67,6 +67,22 @@ mono_service = MonoService()
 # W3C Trace Context propagation
 from opentelemetry.propagate import extract
 
+@app.get("/health")
+async def health():
+    return JSONResponse(content={"status": "healthy"})
+
+@app.get("/ready")
+async def ready():
+    import torch
+    model_loaded = getattr(mono_service, "initialized", False) and getattr(mono_service, "model", None) is not None
+    device = getattr(mono_service, "device", None)
+    gpu_ok = True
+    if getattr(device, "type", None) == "cuda":
+        gpu_ok = torch.cuda.is_available()
+    if model_loaded and gpu_ok:
+        return JSONResponse(content={"status": "ready"})
+    return JSONResponse(status_code=503, content={"status": "not_ready", "model_loaded": model_loaded, "gpu_ok": gpu_ok})
+
 @app.post("/predictions/mono", response_model=ResponseModel)
 async def process_video(data: GCSRequest, request: Request):
     """
