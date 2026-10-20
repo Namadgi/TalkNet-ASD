@@ -1,0 +1,824 @@
+{
+  "config": {
+    "name": "baseline",
+    "endpoint": "https://ml-asd-golden-lwdrsd6qmq-uc.a.run.app",
+    "mode": "gcs",
+    "bucket": "biometry-test",
+    "prefix": "bm472-eval/clips/",
+    "n_clips": 90,
+    "n_errors": 0,
+    "generated_at": "2026-10-20T17:28:29Z"
+  },
+  "results": [
+    {
+      "clip": "clip_01_A5zyTN.mp4",
+      "code": 0,
+      "result": 94.12,
+      "score": 96.73,
+      "description": "Successful check",
+      "latency_s": 4.3158,
+      "error": null
+    },
+    {
+      "clip": "clip_02_BWgaVQ.mp4",
+      "code": 0,
+      "result": 100.0,
+      "score": 100.0,
+      "description": "Successful check",
+      "latency_s": 3.9349,
+      "error": null
+    },
+    {
+      "clip": "clip_03_AyeOzp.mp4",
+      "code": 2,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "No face present",
+      "latency_s": 1.1833,
+      "error": null
+    },
+    {
+      "clip": "clip_04_hJjTDB.mp4",
+      "code": 0,
+      "result": 100.0,
+      "score": 100.0,
+      "description": "Successful check",
+      "latency_s": 3.6849,
+      "error": null
+    },
+    {
+      "clip": "clip_05_nBRhtp.webm",
+      "code": 0,
+      "result": 70.11,
+      "score": 83.39,
+      "description": "Successful check",
+      "latency_s": 3.9612,
+      "error": null
+    },
+    {
+      "clip": "clip_06_DaJ_bM.webm",
+      "code": 0,
+      "result": 72.41,
+      "score": 84.67,
+      "description": "Successful check",
+      "latency_s": 4.1596,
+      "error": null
+    },
+    {
+      "clip": "clip_07_o9Bi82.webm",
+      "code": 0,
+      "result": 61.49,
+      "score": 78.61,
+      "description": "Successful check",
+      "latency_s": 5.4742,
+      "error": null
+    },
+    {
+      "clip": "clip_08_iPvSDv.webm",
+      "code": 0,
+      "result": 71.26,
+      "score": 84.03,
+      "description": "Successful check",
+      "latency_s": 3.8413,
+      "error": null
+    },
+    {
+      "clip": "clip_09_94X-jt.webm",
+      "code": 0,
+      "result": 64.94,
+      "score": 80.52,
+      "description": "Successful check",
+      "latency_s": 4.03,
+      "error": null
+    },
+    {
+      "clip": "clip_10_iVvXEF.webm",
+      "code": 0,
+      "result": 59.77,
+      "score": 77.65,
+      "description": "Successful check",
+      "latency_s": 3.9186,
+      "error": null
+    },
+    {
+      "clip": "clip_11_qJF25x.webm",
+      "code": 0,
+      "result": 78.74,
+      "score": 88.19,
+      "description": "Successful check",
+      "latency_s": 4.0959,
+      "error": null
+    },
+    {
+      "clip": "clip_12_8_JJx9.mp4",
+      "code": 0,
+      "result": 50.99,
+      "score": 72.77,
+      "description": "Successful check",
+      "latency_s": 3.9036,
+      "error": null
+    },
+    {
+      "clip": "clip_13_own_enkidu.mov",
+      "code": 0,
+      "result": 99.39,
+      "score": 99.66,
+      "description": "Successful check",
+      "latency_s": 5.4265,
+      "error": null
+    },
+    {
+      "clip": "clip_14_own_words.webm",
+      "code": 0,
+      "result": 100.0,
+      "score": 100.0,
+      "description": "Successful check",
+      "latency_s": 4.783,
+      "error": null
+    },
+    {
+      "clip": "clip_15_own_test.mov",
+      "code": 0,
+      "result": 89.86,
+      "score": 94.37,
+      "description": "Successful check",
+      "latency_s": 4.6245,
+      "error": null
+    },
+    {
+      "clip": "clip_16_own_8956646981.webm",
+      "code": 0,
+      "result": 49.0,
+      "score": 71.67,
+      "description": "Successful check",
+      "latency_s": 6.5983,
+      "error": null
+    },
+    {
+      "clip": "clip_17_own_me.webm",
+      "code": 0,
+      "result": 40.0,
+      "score": 66.67,
+      "description": "Successful check",
+      "latency_s": 6.8979,
+      "error": null
+    },
+    {
+      "clip": "clip_18_own_IMG_3865.mov",
+      "code": 0,
+      "result": 99.45,
+      "score": 99.69,
+      "description": "Successful check",
+      "latency_s": 5.3358,
+      "error": null
+    },
+    {
+      "clip": "clip_19_own_async.mov",
+      "code": 1,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "Person is not speaking",
+      "latency_s": 3.9724,
+      "error": null
+    },
+    {
+      "clip": "clip_20_own_IMG_3866.mov",
+      "code": 0,
+      "result": 87.01,
+      "score": 92.78,
+      "description": "Successful check",
+      "latency_s": 4.4116,
+      "error": null
+    },
+    {
+      "clip": "clip_21_own_Movie_on_20-.mov",
+      "code": 0,
+      "result": 46.51,
+      "score": 70.28,
+      "description": "Successful check",
+      "latency_s": 4.2468,
+      "error": null
+    },
+    {
+      "clip": "clip_22_own_video.webm",
+      "code": 0,
+      "result": 63.2,
+      "score": 79.56,
+      "description": "Successful check",
+      "latency_s": 6.0279,
+      "error": null
+    },
+    {
+      "clip": "clip_23_own_video.webm",
+      "code": 0,
+      "result": 47.79,
+      "score": 70.99,
+      "description": "Successful check",
+      "latency_s": 8.4845,
+      "error": null
+    },
+    {
+      "clip": "clip_24_own_video.webm",
+      "code": 0,
+      "result": 42.38,
+      "score": 67.99,
+      "description": "Successful check",
+      "latency_s": 6.059,
+      "error": null
+    },
+    {
+      "clip": "clip_25_own_video.webm",
+      "code": 0,
+      "result": 28.4,
+      "score": 60.22,
+      "description": "Successful check",
+      "latency_s": 7.6757,
+      "error": null
+    },
+    {
+      "clip": "clip_26_own_video.webm",
+      "code": 0,
+      "result": 46.77,
+      "score": 70.43,
+      "description": "Successful check",
+      "latency_s": 6.8392,
+      "error": null
+    },
+    {
+      "clip": "clip_27_own_video.webm",
+      "code": 0,
+      "result": 29.72,
+      "score": 60.96,
+      "description": "Successful check",
+      "latency_s": 6.7865,
+      "error": null
+    },
+    {
+      "clip": "clip_28_own_video.webm",
+      "code": 2,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "No face present",
+      "latency_s": 3.2714,
+      "error": null
+    },
+    {
+      "clip": "clip_29_own_video.webm",
+      "code": 1,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "Person is not speaking",
+      "latency_s": 5.126,
+      "error": null
+    },
+    {
+      "clip": "clip_30_own_video.webm",
+      "code": 2,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "No face present",
+      "latency_s": 2.0819,
+      "error": null
+    },
+    {
+      "clip": "clip_31_own_video.webm",
+      "code": 0,
+      "result": 67.21,
+      "score": 81.78,
+      "description": "Successful check",
+      "latency_s": 6.4734,
+      "error": null
+    },
+    {
+      "clip": "clip_32_own_video.webm",
+      "code": 1,
+      "result": 1.67,
+      "score": 8.35,
+      "description": "Person is not speaking",
+      "latency_s": 3.4831,
+      "error": null
+    },
+    {
+      "clip": "clip_33_own_video.webm",
+      "code": 0,
+      "result": 50.0,
+      "score": 72.22,
+      "description": "Successful check",
+      "latency_s": 6.5561,
+      "error": null
+    },
+    {
+      "clip": "clip_34_own_video.webm",
+      "code": 2,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "No face present",
+      "latency_s": 4.6685,
+      "error": null
+    },
+    {
+      "clip": "clip_35_own_video.webm",
+      "code": 0,
+      "result": 19.66,
+      "score": 55.37,
+      "description": "Successful check",
+      "latency_s": 3.4411,
+      "error": null
+    },
+    {
+      "clip": "clip_36_own_video.webm",
+      "code": 1,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "Person is not speaking",
+      "latency_s": 3.1421,
+      "error": null
+    },
+    {
+      "clip": "clip_37_own_video.webm",
+      "code": 0,
+      "result": 50.0,
+      "score": 72.22,
+      "description": "Successful check",
+      "latency_s": 8.1653,
+      "error": null
+    },
+    {
+      "clip": "clip_38_own_video.webm",
+      "code": 0,
+      "result": 50.2,
+      "score": 72.33,
+      "description": "Successful check",
+      "latency_s": 6.5105,
+      "error": null
+    },
+    {
+      "clip": "clip_39_own_video.webm",
+      "code": 0,
+      "result": 47.2,
+      "score": 70.67,
+      "description": "Successful check",
+      "latency_s": 5.6665,
+      "error": null
+    },
+    {
+      "clip": "clip_40_own_video.webm",
+      "code": 2,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "No face present",
+      "latency_s": 2.7224,
+      "error": null
+    },
+    {
+      "clip": "clip_41_own_video.webm",
+      "code": 0,
+      "result": 31.6,
+      "score": 62.0,
+      "description": "Successful check",
+      "latency_s": 6.0068,
+      "error": null
+    },
+    {
+      "clip": "clip_42_own_video.webm",
+      "code": 0,
+      "result": 45.78,
+      "score": 69.88,
+      "description": "Successful check",
+      "latency_s": 6.5794,
+      "error": null
+    },
+    {
+      "clip": "clip_43_own_video.webm",
+      "code": 0,
+      "result": 16.47,
+      "score": 53.59,
+      "description": "Successful check",
+      "latency_s": 6.803,
+      "error": null
+    },
+    {
+      "clip": "clip_44_own_video.webm",
+      "code": 0,
+      "result": 44.94,
+      "score": 69.41,
+      "description": "Successful check",
+      "latency_s": 6.0175,
+      "error": null
+    },
+    {
+      "clip": "clip_45_own_video.webm",
+      "code": 0,
+      "result": 53.01,
+      "score": 73.89,
+      "description": "Successful check",
+      "latency_s": 7.0826,
+      "error": null
+    },
+    {
+      "clip": "clip_46_own_video.webm",
+      "code": 1,
+      "result": 0.41,
+      "score": 2.05,
+      "description": "Person is not speaking",
+      "latency_s": 5.9548,
+      "error": null
+    },
+    {
+      "clip": "clip_47_own_video.webm",
+      "code": 1,
+      "result": 1.06,
+      "score": 5.3,
+      "description": "Person is not speaking",
+      "latency_s": 3.3495,
+      "error": null
+    },
+    {
+      "clip": "clip_48_own_video.webm",
+      "code": 1,
+      "result": 2.15,
+      "score": 10.75,
+      "description": "Person is not speaking",
+      "latency_s": 5.2164,
+      "error": null
+    },
+    {
+      "clip": "clip_49_own_video.webm",
+      "code": 0,
+      "result": 62.65,
+      "score": 79.25,
+      "description": "Successful check",
+      "latency_s": 7.1113,
+      "error": null
+    },
+    {
+      "clip": "clip_50_own_video.webm",
+      "code": 0,
+      "result": 60.98,
+      "score": 78.32,
+      "description": "Successful check",
+      "latency_s": 6.7655,
+      "error": null
+    },
+    {
+      "clip": "clip_51_own_video.webm",
+      "code": 0,
+      "result": 45.78,
+      "score": 69.88,
+      "description": "Successful check",
+      "latency_s": 7.288,
+      "error": null
+    },
+    {
+      "clip": "clip_52_own_video.webm",
+      "code": 1,
+      "result": 0.41,
+      "score": 2.05,
+      "description": "Person is not speaking",
+      "latency_s": 5.7208,
+      "error": null
+    },
+    {
+      "clip": "clip_53_own_video.webm",
+      "code": 0,
+      "result": 24.29,
+      "score": 57.94,
+      "description": "Successful check",
+      "latency_s": 6.8133,
+      "error": null
+    },
+    {
+      "clip": "clip_54_own_video.webm",
+      "code": 0,
+      "result": 10.8,
+      "score": 50.44,
+      "description": "Successful check",
+      "latency_s": 5.9287,
+      "error": null
+    },
+    {
+      "clip": "clip_55_own_video.webm",
+      "code": 0,
+      "result": 49.41,
+      "score": 71.89,
+      "description": "Successful check",
+      "latency_s": 6.7564,
+      "error": null
+    },
+    {
+      "clip": "clip_56_own_video.webm",
+      "code": 2,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "No face present",
+      "latency_s": 2.0928,
+      "error": null
+    },
+    {
+      "clip": "clip_57_own_video.webm",
+      "code": 0,
+      "result": 42.17,
+      "score": 67.87,
+      "description": "Successful check",
+      "latency_s": 6.9009,
+      "error": null
+    },
+    {
+      "clip": "clip_58_bench_1_4.mp4",
+      "code": 2,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "No face present",
+      "latency_s": 1.2517,
+      "error": null
+    },
+    {
+      "clip": "clip_59_bench_4_4.mp4",
+      "code": 0,
+      "result": 91.3,
+      "score": 95.17,
+      "description": "Successful check",
+      "latency_s": 2.51,
+      "error": null
+    },
+    {
+      "clip": "clip_60_bench_9_8.mp4",
+      "code": 0,
+      "result": 64.96,
+      "score": 80.53,
+      "description": "Successful check",
+      "latency_s": 3.5499,
+      "error": null
+    },
+    {
+      "clip": "clip_61_bench_aidana.mp4",
+      "code": 0,
+      "result": 85.98,
+      "score": 92.21,
+      "description": "Successful check",
+      "latency_s": 3.7148,
+      "error": null
+    },
+    {
+      "clip": "clip_62_bench_anna.mp4",
+      "code": 0,
+      "result": 75.92,
+      "score": 86.62,
+      "description": "Successful check",
+      "latency_s": 9.4322,
+      "error": null
+    },
+    {
+      "clip": "clip_63_bench_enkidu.mp4",
+      "code": 0,
+      "result": 89.52,
+      "score": 94.18,
+      "description": "Successful check",
+      "latency_s": 6.187,
+      "error": null
+    },
+    {
+      "clip": "clip_64_bench_rysmende.mp4",
+      "code": 0,
+      "result": 81.9,
+      "score": 89.94,
+      "description": "Successful check",
+      "latency_s": 2.6708,
+      "error": null
+    },
+    {
+      "clip": "clip_65_df_s.mp4",
+      "code": 0,
+      "result": 88.08,
+      "score": 93.38,
+      "description": "Successful check",
+      "latency_s": 5.3427,
+      "error": null
+    },
+    {
+      "clip": "clip_66_df_1.mp4",
+      "code": 0,
+      "result": 86.4,
+      "score": 92.44,
+      "description": "Successful check",
+      "latency_s": 5.5325,
+      "error": null
+    },
+    {
+      "clip": "clip_67_df_10.mp4",
+      "code": 0,
+      "result": 85.11,
+      "score": 91.73,
+      "description": "Successful check",
+      "latency_s": 3.3152,
+      "error": null
+    },
+    {
+      "clip": "clip_68_df_11.mp4",
+      "code": 2,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "No face present",
+      "latency_s": 3.7141,
+      "error": null
+    },
+    {
+      "clip": "clip_69_df_12.mp4",
+      "code": 2,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "No face present",
+      "latency_s": 2.2355,
+      "error": null
+    },
+    {
+      "clip": "clip_70_df_13.mp4",
+      "code": 0,
+      "result": 99.43,
+      "score": 99.68,
+      "description": "Successful check",
+      "latency_s": 4.1528,
+      "error": null
+    },
+    {
+      "clip": "clip_71_df_2.mp4",
+      "code": 0,
+      "result": 87.93,
+      "score": 93.29,
+      "description": "Successful check",
+      "latency_s": 4.3492,
+      "error": null
+    },
+    {
+      "clip": "clip_72_df_3.mp4",
+      "code": 0,
+      "result": 100.0,
+      "score": 100.0,
+      "description": "Successful check",
+      "latency_s": 9.279,
+      "error": null
+    },
+    {
+      "clip": "clip_73_df_4.mp4",
+      "code": 0,
+      "result": 84.11,
+      "score": 91.17,
+      "description": "Successful check",
+      "latency_s": 3.1361,
+      "error": null
+    },
+    {
+      "clip": "clip_74_df_5.mp4",
+      "code": 0,
+      "result": 90.0,
+      "score": 94.44,
+      "description": "Successful check",
+      "latency_s": 4.7862,
+      "error": null
+    },
+    {
+      "clip": "clip_75_df_6.mp4",
+      "code": 0,
+      "result": 85.04,
+      "score": 91.69,
+      "description": "Successful check",
+      "latency_s": 7.1827,
+      "error": null
+    },
+    {
+      "clip": "clip_76_df_7.mp4",
+      "code": 0,
+      "result": 89.4,
+      "score": 94.11,
+      "description": "Successful check",
+      "latency_s": 3.9297,
+      "error": null
+    },
+    {
+      "clip": "clip_77_df_8.mp4",
+      "code": 0,
+      "result": 87.4,
+      "score": 93.0,
+      "description": "Successful check",
+      "latency_s": 4.1754,
+      "error": null
+    },
+    {
+      "clip": "clip_78_df_9.mp4",
+      "code": 0,
+      "result": 84.97,
+      "score": 91.65,
+      "description": "Successful check",
+      "latency_s": 5.3524,
+      "error": null
+    },
+    {
+      "clip": "clip_79_df_426504.mp4",
+      "code": 0,
+      "result": 98.52,
+      "score": 99.18,
+      "description": "Successful check",
+      "latency_s": 4.3586,
+      "error": null
+    },
+    {
+      "clip": "clip_80_df_455513.mp4",
+      "code": 0,
+      "result": 99.26,
+      "score": 99.59,
+      "description": "Successful check",
+      "latency_s": 4.6347,
+      "error": null
+    },
+    {
+      "clip": "clip_81_df_515174.mp4",
+      "code": 0,
+      "result": 93.37,
+      "score": 96.32,
+      "description": "Successful check",
+      "latency_s": 3.9912,
+      "error": null
+    },
+    {
+      "clip": "clip_82_df_549410.mp4",
+      "code": 0,
+      "result": 84.02,
+      "score": 91.12,
+      "description": "Successful check",
+      "latency_s": 6.587,
+      "error": null
+    },
+    {
+      "clip": "clip_83_df_586115.mp4",
+      "code": 0,
+      "result": 88.43,
+      "score": 93.57,
+      "description": "Successful check",
+      "latency_s": 3.4673,
+      "error": null
+    },
+    {
+      "clip": "clip_84_df_607208.mp4",
+      "code": 0,
+      "result": 89.95,
+      "score": 94.42,
+      "description": "Successful check",
+      "latency_s": 8.3645,
+      "error": null
+    },
+    {
+      "clip": "clip_85_df_634407.mp4",
+      "code": 0,
+      "result": 92.96,
+      "score": 96.09,
+      "description": "Successful check",
+      "latency_s": 5.734,
+      "error": null
+    },
+    {
+      "clip": "clip_86_df_684697.mp4",
+      "code": 0,
+      "result": 86.71,
+      "score": 92.62,
+      "description": "Successful check",
+      "latency_s": 6.766,
+      "error": null
+    },
+    {
+      "clip": "clip_87_df_723607.mp4",
+      "code": 0,
+      "result": 90.91,
+      "score": 94.95,
+      "description": "Successful check",
+      "latency_s": 3.22,
+      "error": null
+    },
+    {
+      "clip": "clip_88_df_764100.mp4",
+      "code": 0,
+      "result": 90.24,
+      "score": 94.58,
+      "description": "Successful check",
+      "latency_s": 3.1937,
+      "error": null
+    },
+    {
+      "clip": "clip_89_df_794414.mp4",
+      "code": 0,
+      "result": 90.55,
+      "score": 94.75,
+      "description": "Successful check",
+      "latency_s": 6.0094,
+      "error": null
+    },
+    {
+      "clip": "clip_90_warmup.mov",
+      "code": 0,
+      "result": 100.0,
+      "score": 100.0,
+      "description": "Successful check",
+      "latency_s": 3.5641,
+      "error": null
+    }
+  ]
+}
