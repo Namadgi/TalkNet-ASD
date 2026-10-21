@@ -2,6 +2,7 @@ clips_cache/
 __pycache__/
 # Result JSONs are deliberately committed (root .gitignore ignores *.json).
 !results/*.json
+!results/**/*.json
 # ...except throwaway smoke-test output.
 results/smoke.json
 results/*_smoke.json

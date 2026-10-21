@@ -1,0 +1,918 @@
+{
+  "config": {
+    "name": "hybrid-audio-full",
+    "endpoint": "https://audio-only---ml-asd-golden-lwdrsd6qmq-uc.a.run.app",
+    "revision": "ml-asd-golden-00007-mux",
+    "image": "us-central1-docker.pkg.dev/biometry-416410/cloud-run-source-deploy/ml-asd-golden@sha256:b6b46343253004799e2d74ecec928850c821572c2c145868e619af8f60482bfc",
+    "evaluator_git_commit": "d8f8fa83a94f469c620d6c11686a90c71cb885d3",
+    "mode": "gcs",
+    "bucket": "biometry-test",
+    "prefix": "bm472-eval/clips/",
+    "n_clips": 90,
+    "n_errors": 0,
+    "started_at": "2026-10-21T17:37:17Z",
+    "generated_at": "2026-10-21T17:43:56Z"
+  },
+  "results": [
+    {
+      "clip": "clip_01_A5zyTN.mp4",
+      "object_name": "bm472-eval/clips/clip_01_A5zyTN.mp4",
+      "code": 0,
+      "result": 94.96,
+      "score": 97.2,
+      "description": "Successful check",
+      "latency_s": 3.6432,
+      "error": null
+    },
+    {
+      "clip": "clip_02_BWgaVQ.mp4",
+      "object_name": "bm472-eval/clips/clip_02_BWgaVQ.mp4",
+      "code": 0,
+      "result": 100.0,
+      "score": 100.0,
+      "description": "Successful check",
+      "latency_s": 4.1072,
+      "error": null
+    },
+    {
+      "clip": "clip_03_AyeOzp.mp4",
+      "object_name": "bm472-eval/clips/clip_03_AyeOzp.mp4",
+      "code": 2,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "No face present",
+      "latency_s": 0.8818,
+      "error": null
+    },
+    {
+      "clip": "clip_04_hJjTDB.mp4",
+      "object_name": "bm472-eval/clips/clip_04_hJjTDB.mp4",
+      "code": 0,
+      "result": 100.0,
+      "score": 100.0,
+      "description": "Successful check",
+      "latency_s": 2.8944,
+      "error": null
+    },
+    {
+      "clip": "clip_05_nBRhtp.webm",
+      "object_name": "bm472-eval/clips/clip_05_nBRhtp.webm",
+      "code": 0,
+      "result": 70.52,
+      "score": 83.62,
+      "description": "Successful check",
+      "latency_s": 3.5349,
+      "error": null
+    },
+    {
+      "clip": "clip_06_DaJ_bM.webm",
+      "object_name": "bm472-eval/clips/clip_06_DaJ_bM.webm",
+      "code": 0,
+      "result": 72.83,
+      "score": 84.91,
+      "description": "Successful check",
+      "latency_s": 3.6099,
+      "error": null
+    },
+    {
+      "clip": "clip_07_o9Bi82.webm",
+      "object_name": "bm472-eval/clips/clip_07_o9Bi82.webm",
+      "code": 0,
+      "result": 61.85,
+      "score": 78.81,
+      "description": "Successful check",
+      "latency_s": 7.5978,
+      "error": null
+    },
+    {
+      "clip": "clip_08_iPvSDv.webm",
+      "object_name": "bm472-eval/clips/clip_08_iPvSDv.webm",
+      "code": 0,
+      "result": 71.68,
+      "score": 84.27,
+      "description": "Successful check",
+      "latency_s": 3.2267,
+      "error": null
+    },
+    {
+      "clip": "clip_09_94X-jt.webm",
+      "object_name": "bm472-eval/clips/clip_09_94X-jt.webm",
+      "code": 0,
+      "result": 65.9,
+      "score": 81.06,
+      "description": "Successful check",
+      "latency_s": 3.4707,
+      "error": null
+    },
+    {
+      "clip": "clip_10_iVvXEF.webm",
+      "object_name": "bm472-eval/clips/clip_10_iVvXEF.webm",
+      "code": 0,
+      "result": 60.12,
+      "score": 77.84,
+      "description": "Successful check",
+      "latency_s": 3.1547,
+      "error": null
+    },
+    {
+      "clip": "clip_11_qJF25x.webm",
+      "object_name": "bm472-eval/clips/clip_11_qJF25x.webm",
+      "code": 0,
+      "result": 80.35,
+      "score": 89.08,
+      "description": "Successful check",
+      "latency_s": 3.5138,
+      "error": null
+    },
+    {
+      "clip": "clip_12_8_JJx9.mp4",
+      "object_name": "bm472-eval/clips/clip_12_8_JJx9.mp4",
+      "code": 0,
+      "result": 50.99,
+      "score": 72.77,
+      "description": "Successful check",
+      "latency_s": 3.3465,
+      "error": null
+    },
+    {
+      "clip": "clip_13_own_enkidu.mov",
+      "object_name": "bm472-eval/clips/clip_13_own_enkidu.mov",
+      "code": 0,
+      "result": 100.0,
+      "score": 100.0,
+      "description": "Successful check",
+      "latency_s": 4.6398,
+      "error": null
+    },
+    {
+      "clip": "clip_14_own_words.webm",
+      "object_name": "bm472-eval/clips/clip_14_own_words.webm",
+      "code": 0,
+      "result": 100.0,
+      "score": 100.0,
+      "description": "Successful check",
+      "latency_s": 3.9921,
+      "error": null
+    },
+    {
+      "clip": "clip_15_own_test.mov",
+      "object_name": "bm472-eval/clips/clip_15_own_test.mov",
+      "code": 0,
+      "result": 89.86,
+      "score": 94.37,
+      "description": "Successful check",
+      "latency_s": 4.1803,
+      "error": null
+    },
+    {
+      "clip": "clip_16_own_8956646981.webm",
+      "object_name": "bm472-eval/clips/clip_16_own_8956646981.webm",
+      "code": 0,
+      "result": 49.19,
+      "score": 71.77,
+      "description": "Successful check",
+      "latency_s": 6.2896,
+      "error": null
+    },
+    {
+      "clip": "clip_17_own_me.webm",
+      "object_name": "bm472-eval/clips/clip_17_own_me.webm",
+      "code": 0,
+      "result": 40.0,
+      "score": 66.67,
+      "description": "Successful check",
+      "latency_s": 6.01,
+      "error": null
+    },
+    {
+      "clip": "clip_18_own_IMG_3865.mov",
+      "object_name": "bm472-eval/clips/clip_18_own_IMG_3865.mov",
+      "code": 0,
+      "result": 98.9,
+      "score": 99.39,
+      "description": "Successful check",
+      "latency_s": 4.9047,
+      "error": null
+    },
+    {
+      "clip": "clip_19_own_async.mov",
+      "object_name": "bm472-eval/clips/clip_19_own_async.mov",
+      "code": 1,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "Person is not speaking",
+      "latency_s": 3.7642,
+      "error": null
+    },
+    {
+      "clip": "clip_20_own_IMG_3866.mov",
+      "object_name": "bm472-eval/clips/clip_20_own_IMG_3866.mov",
+      "code": 0,
+      "result": 88.89,
+      "score": 93.83,
+      "description": "Successful check",
+      "latency_s": 4.0768,
+      "error": null
+    },
+    {
+      "clip": "clip_21_own_Movie_on_20-.mov",
+      "object_name": "bm472-eval/clips/clip_21_own_Movie_on_20-.mov",
+      "code": 0,
+      "result": 33.33,
+      "score": 62.96,
+      "description": "Successful check",
+      "latency_s": 3.9594,
+      "error": null
+    },
+    {
+      "clip": "clip_22_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_22_own_video.webm",
+      "code": 0,
+      "result": 63.64,
+      "score": 79.8,
+      "description": "Successful check",
+      "latency_s": 5.2332,
+      "error": null
+    },
+    {
+      "clip": "clip_23_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_23_own_video.webm",
+      "code": 0,
+      "result": 46.77,
+      "score": 70.43,
+      "description": "Successful check",
+      "latency_s": 7.5071,
+      "error": null
+    },
+    {
+      "clip": "clip_24_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_24_own_video.webm",
+      "code": 0,
+      "result": 42.38,
+      "score": 67.99,
+      "description": "Successful check",
+      "latency_s": 5.4217,
+      "error": null
+    },
+    {
+      "clip": "clip_25_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_25_own_video.webm",
+      "code": 0,
+      "result": 28.4,
+      "score": 60.22,
+      "description": "Successful check",
+      "latency_s": 6.9322,
+      "error": null
+    },
+    {
+      "clip": "clip_26_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_26_own_video.webm",
+      "code": 0,
+      "result": 46.77,
+      "score": 70.43,
+      "description": "Successful check",
+      "latency_s": 9.3853,
+      "error": null
+    },
+    {
+      "clip": "clip_27_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_27_own_video.webm",
+      "code": 0,
+      "result": 29.84,
+      "score": 61.02,
+      "description": "Successful check",
+      "latency_s": 5.924,
+      "error": null
+    },
+    {
+      "clip": "clip_28_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_28_own_video.webm",
+      "code": 2,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "No face present",
+      "latency_s": 3.1567,
+      "error": null
+    },
+    {
+      "clip": "clip_29_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_29_own_video.webm",
+      "code": 1,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "Person is not speaking",
+      "latency_s": 4.5997,
+      "error": null
+    },
+    {
+      "clip": "clip_30_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_30_own_video.webm",
+      "code": 2,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "No face present",
+      "latency_s": 1.9729,
+      "error": null
+    },
+    {
+      "clip": "clip_31_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_31_own_video.webm",
+      "code": 0,
+      "result": 67.61,
+      "score": 82.01,
+      "description": "Successful check",
+      "latency_s": 6.0644,
+      "error": null
+    },
+    {
+      "clip": "clip_32_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_32_own_video.webm",
+      "code": 1,
+      "result": 1.67,
+      "score": 8.35,
+      "description": "Person is not speaking",
+      "latency_s": 3.255,
+      "error": null
+    },
+    {
+      "clip": "clip_33_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_33_own_video.webm",
+      "code": 0,
+      "result": 50.0,
+      "score": 72.22,
+      "description": "Successful check",
+      "latency_s": 5.9731,
+      "error": null
+    },
+    {
+      "clip": "clip_34_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_34_own_video.webm",
+      "code": 2,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "No face present",
+      "latency_s": 4.419,
+      "error": null
+    },
+    {
+      "clip": "clip_35_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_35_own_video.webm",
+      "code": 0,
+      "result": 17.09,
+      "score": 53.94,
+      "description": "Successful check",
+      "latency_s": 3.1174,
+      "error": null
+    },
+    {
+      "clip": "clip_36_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_36_own_video.webm",
+      "code": 1,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "Person is not speaking",
+      "latency_s": 2.6909,
+      "error": null
+    },
+    {
+      "clip": "clip_37_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_37_own_video.webm",
+      "code": 0,
+      "result": 48.8,
+      "score": 71.56,
+      "description": "Successful check",
+      "latency_s": 6.5208,
+      "error": null
+    },
+    {
+      "clip": "clip_38_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_38_own_video.webm",
+      "code": 0,
+      "result": 50.4,
+      "score": 72.44,
+      "description": "Successful check",
+      "latency_s": 5.7524,
+      "error": null
+    },
+    {
+      "clip": "clip_39_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_39_own_video.webm",
+      "code": 0,
+      "result": 45.2,
+      "score": 69.56,
+      "description": "Successful check",
+      "latency_s": 5.0498,
+      "error": null
+    },
+    {
+      "clip": "clip_40_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_40_own_video.webm",
+      "code": 2,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "No face present",
+      "latency_s": 2.7514,
+      "error": null
+    },
+    {
+      "clip": "clip_41_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_41_own_video.webm",
+      "code": 0,
+      "result": 31.6,
+      "score": 62.0,
+      "description": "Successful check",
+      "latency_s": 5.1254,
+      "error": null
+    },
+    {
+      "clip": "clip_42_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_42_own_video.webm",
+      "code": 0,
+      "result": 45.56,
+      "score": 69.76,
+      "description": "Successful check",
+      "latency_s": 5.7837,
+      "error": null
+    },
+    {
+      "clip": "clip_43_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_43_own_video.webm",
+      "code": 0,
+      "result": 16.87,
+      "score": 53.82,
+      "description": "Successful check",
+      "latency_s": 8.5988,
+      "error": null
+    },
+    {
+      "clip": "clip_44_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_44_own_video.webm",
+      "code": 0,
+      "result": 48.58,
+      "score": 71.43,
+      "description": "Successful check",
+      "latency_s": 4.8572,
+      "error": null
+    },
+    {
+      "clip": "clip_45_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_45_own_video.webm",
+      "code": 0,
+      "result": 53.23,
+      "score": 74.02,
+      "description": "Successful check",
+      "latency_s": 6.0398,
+      "error": null
+    },
+    {
+      "clip": "clip_46_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_46_own_video.webm",
+      "code": 1,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "Person is not speaking",
+      "latency_s": 5.2318,
+      "error": null
+    },
+    {
+      "clip": "clip_47_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_47_own_video.webm",
+      "code": 1,
+      "result": 1.6,
+      "score": 8.0,
+      "description": "Person is not speaking",
+      "latency_s": 2.6212,
+      "error": null
+    },
+    {
+      "clip": "clip_48_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_48_own_video.webm",
+      "code": 1,
+      "result": 2.69,
+      "score": 13.45,
+      "description": "Person is not speaking",
+      "latency_s": 4.4856,
+      "error": null
+    },
+    {
+      "clip": "clip_49_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_49_own_video.webm",
+      "code": 0,
+      "result": 62.5,
+      "score": 79.17,
+      "description": "Successful check",
+      "latency_s": 6.024,
+      "error": null
+    },
+    {
+      "clip": "clip_50_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_50_own_video.webm",
+      "code": 0,
+      "result": 60.57,
+      "score": 78.09,
+      "description": "Successful check",
+      "latency_s": 5.9355,
+      "error": null
+    },
+    {
+      "clip": "clip_51_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_51_own_video.webm",
+      "code": 0,
+      "result": 45.97,
+      "score": 69.98,
+      "description": "Successful check",
+      "latency_s": 6.3908,
+      "error": null
+    },
+    {
+      "clip": "clip_52_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_52_own_video.webm",
+      "code": 1,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "Person is not speaking",
+      "latency_s": 4.9904,
+      "error": null
+    },
+    {
+      "clip": "clip_53_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_53_own_video.webm",
+      "code": 0,
+      "result": 23.89,
+      "score": 57.72,
+      "description": "Successful check",
+      "latency_s": 5.7146,
+      "error": null
+    },
+    {
+      "clip": "clip_54_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_54_own_video.webm",
+      "code": 0,
+      "result": 11.2,
+      "score": 50.67,
+      "description": "Successful check",
+      "latency_s": 5.3414,
+      "error": null
+    },
+    {
+      "clip": "clip_55_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_55_own_video.webm",
+      "code": 0,
+      "result": 47.06,
+      "score": 70.59,
+      "description": "Successful check",
+      "latency_s": 6.0236,
+      "error": null
+    },
+    {
+      "clip": "clip_56_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_56_own_video.webm",
+      "code": 2,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "No face present",
+      "latency_s": 2.0655,
+      "error": null
+    },
+    {
+      "clip": "clip_57_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_57_own_video.webm",
+      "code": 0,
+      "result": 41.94,
+      "score": 67.74,
+      "description": "Successful check",
+      "latency_s": 5.988,
+      "error": null
+    },
+    {
+      "clip": "clip_58_bench_1_4.mp4",
+      "object_name": "bm472-eval/clips/clip_58_bench_1_4.mp4",
+      "code": 2,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "No face present",
+      "latency_s": 1.2456,
+      "error": null
+    },
+    {
+      "clip": "clip_59_bench_4_4.mp4",
+      "object_name": "bm472-eval/clips/clip_59_bench_4_4.mp4",
+      "code": 0,
+      "result": 91.3,
+      "score": 95.17,
+      "description": "Successful check",
+      "latency_s": 1.9682,
+      "error": null
+    },
+    {
+      "clip": "clip_60_bench_9_8.mp4",
+      "object_name": "bm472-eval/clips/clip_60_bench_9_8.mp4",
+      "code": 0,
+      "result": 68.38,
+      "score": 82.43,
+      "description": "Successful check",
+      "latency_s": 4.0937,
+      "error": null
+    },
+    {
+      "clip": "clip_61_bench_aidana.mp4",
+      "object_name": "bm472-eval/clips/clip_61_bench_aidana.mp4",
+      "code": 0,
+      "result": 85.05,
+      "score": 91.69,
+      "description": "Successful check",
+      "latency_s": 3.149,
+      "error": null
+    },
+    {
+      "clip": "clip_62_bench_anna.mp4",
+      "object_name": "bm472-eval/clips/clip_62_bench_anna.mp4",
+      "code": 0,
+      "result": 76.44,
+      "score": 86.91,
+      "description": "Successful check",
+      "latency_s": 8.3812,
+      "error": null
+    },
+    {
+      "clip": "clip_63_bench_enkidu.mp4",
+      "object_name": "bm472-eval/clips/clip_63_bench_enkidu.mp4",
+      "code": 0,
+      "result": 89.52,
+      "score": 94.18,
+      "description": "Successful check",
+      "latency_s": 3.2895,
+      "error": null
+    },
+    {
+      "clip": "clip_64_bench_rysmende.mp4",
+      "object_name": "bm472-eval/clips/clip_64_bench_rysmende.mp4",
+      "code": 0,
+      "result": 81.9,
+      "score": 89.94,
+      "description": "Successful check",
+      "latency_s": 1.9527,
+      "error": null
+    },
+    {
+      "clip": "clip_65_df_s.mp4",
+      "object_name": "bm472-eval/clips/clip_65_df_s.mp4",
+      "code": 0,
+      "result": 88.08,
+      "score": 93.38,
+      "description": "Successful check",
+      "latency_s": 3.9547,
+      "error": null
+    },
+    {
+      "clip": "clip_66_df_1.mp4",
+      "object_name": "bm472-eval/clips/clip_66_df_1.mp4",
+      "code": 0,
+      "result": 87.2,
+      "score": 92.89,
+      "description": "Successful check",
+      "latency_s": 4.4349,
+      "error": null
+    },
+    {
+      "clip": "clip_67_df_10.mp4",
+      "object_name": "bm472-eval/clips/clip_67_df_10.mp4",
+      "code": 0,
+      "result": 85.11,
+      "score": 91.73,
+      "description": "Successful check",
+      "latency_s": 2.8644,
+      "error": null
+    },
+    {
+      "clip": "clip_68_df_11.mp4",
+      "object_name": "bm472-eval/clips/clip_68_df_11.mp4",
+      "code": 2,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "No face present",
+      "latency_s": 3.5972,
+      "error": null
+    },
+    {
+      "clip": "clip_69_df_12.mp4",
+      "object_name": "bm472-eval/clips/clip_69_df_12.mp4",
+      "code": 2,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "No face present",
+      "latency_s": 2.1105,
+      "error": null
+    },
+    {
+      "clip": "clip_70_df_13.mp4",
+      "object_name": "bm472-eval/clips/clip_70_df_13.mp4",
+      "code": 0,
+      "result": 99.43,
+      "score": 99.68,
+      "description": "Successful check",
+      "latency_s": 3.5436,
+      "error": null
+    },
+    {
+      "clip": "clip_71_df_2.mp4",
+      "object_name": "bm472-eval/clips/clip_71_df_2.mp4",
+      "code": 0,
+      "result": 87.36,
+      "score": 92.98,
+      "description": "Successful check",
+      "latency_s": 3.3403,
+      "error": null
+    },
+    {
+      "clip": "clip_72_df_3.mp4",
+      "object_name": "bm472-eval/clips/clip_72_df_3.mp4",
+      "code": 0,
+      "result": 100.0,
+      "score": 100.0,
+      "description": "Successful check",
+      "latency_s": 6.0256,
+      "error": null
+    },
+    {
+      "clip": "clip_73_df_4.mp4",
+      "object_name": "bm472-eval/clips/clip_73_df_4.mp4",
+      "code": 0,
+      "result": 84.11,
+      "score": 91.17,
+      "description": "Successful check",
+      "latency_s": 2.3211,
+      "error": null
+    },
+    {
+      "clip": "clip_74_df_5.mp4",
+      "object_name": "bm472-eval/clips/clip_74_df_5.mp4",
+      "code": 0,
+      "result": 90.0,
+      "score": 94.44,
+      "description": "Successful check",
+      "latency_s": 3.713,
+      "error": null
+    },
+    {
+      "clip": "clip_75_df_6.mp4",
+      "object_name": "bm472-eval/clips/clip_75_df_6.mp4",
+      "code": 0,
+      "result": 85.04,
+      "score": 91.69,
+      "description": "Successful check",
+      "latency_s": 6.3106,
+      "error": null
+    },
+    {
+      "clip": "clip_76_df_7.mp4",
+      "object_name": "bm472-eval/clips/clip_76_df_7.mp4",
+      "code": 0,
+      "result": 89.4,
+      "score": 94.11,
+      "description": "Successful check",
+      "latency_s": 3.0593,
+      "error": null
+    },
+    {
+      "clip": "clip_77_df_8.mp4",
+      "object_name": "bm472-eval/clips/clip_77_df_8.mp4",
+      "code": 0,
+      "result": 87.4,
+      "score": 93.0,
+      "description": "Successful check",
+      "latency_s": 3.4592,
+      "error": null
+    },
+    {
+      "clip": "clip_78_df_9.mp4",
+      "object_name": "bm472-eval/clips/clip_78_df_9.mp4",
+      "code": 0,
+      "result": 84.31,
+      "score": 91.28,
+      "description": "Successful check",
+      "latency_s": 4.2979,
+      "error": null
+    },
+    {
+      "clip": "clip_79_df_426504.mp4",
+      "object_name": "bm472-eval/clips/clip_79_df_426504.mp4",
+      "code": 0,
+      "result": 96.3,
+      "score": 97.94,
+      "description": "Successful check",
+      "latency_s": 3.5552,
+      "error": null
+    },
+    {
+      "clip": "clip_80_df_455513.mp4",
+      "object_name": "bm472-eval/clips/clip_80_df_455513.mp4",
+      "code": 0,
+      "result": 99.26,
+      "score": 99.59,
+      "description": "Successful check",
+      "latency_s": 3.1566,
+      "error": null
+    },
+    {
+      "clip": "clip_81_df_515174.mp4",
+      "object_name": "bm472-eval/clips/clip_81_df_515174.mp4",
+      "code": 0,
+      "result": 93.37,
+      "score": 96.32,
+      "description": "Successful check",
+      "latency_s": 3.2023,
+      "error": null
+    },
+    {
+      "clip": "clip_82_df_549410.mp4",
+      "object_name": "bm472-eval/clips/clip_82_df_549410.mp4",
+      "code": 0,
+      "result": 83.56,
+      "score": 90.87,
+      "description": "Successful check",
+      "latency_s": 5.176,
+      "error": null
+    },
+    {
+      "clip": "clip_83_df_586115.mp4",
+      "object_name": "bm472-eval/clips/clip_83_df_586115.mp4",
+      "code": 0,
+      "result": 88.43,
+      "score": 93.57,
+      "description": "Successful check",
+      "latency_s": 2.6931,
+      "error": null
+    },
+    {
+      "clip": "clip_84_df_607208.mp4",
+      "object_name": "bm472-eval/clips/clip_84_df_607208.mp4",
+      "code": 0,
+      "result": 89.95,
+      "score": 94.42,
+      "description": "Successful check",
+      "latency_s": 7.5453,
+      "error": null
+    },
+    {
+      "clip": "clip_85_df_634407.mp4",
+      "object_name": "bm472-eval/clips/clip_85_df_634407.mp4",
+      "code": 0,
+      "result": 92.46,
+      "score": 95.81,
+      "description": "Successful check",
+      "latency_s": 5.111,
+      "error": null
+    },
+    {
+      "clip": "clip_86_df_684697.mp4",
+      "object_name": "bm472-eval/clips/clip_86_df_684697.mp4",
+      "code": 0,
+      "result": 86.71,
+      "score": 92.62,
+      "description": "Successful check",
+      "latency_s": 6.1882,
+      "error": null
+    },
+    {
+      "clip": "clip_87_df_723607.mp4",
+      "object_name": "bm472-eval/clips/clip_87_df_723607.mp4",
+      "code": 0,
+      "result": 91.74,
+      "score": 95.41,
+      "description": "Successful check",
+      "latency_s": 2.6398,
+      "error": null
+    },
+    {
+      "clip": "clip_88_df_764100.mp4",
+      "object_name": "bm472-eval/clips/clip_88_df_764100.mp4",
+      "code": 0,
+      "result": 90.24,
+      "score": 94.58,
+      "description": "Successful check",
+      "latency_s": 2.5962,
+      "error": null
+    },
+    {
+      "clip": "clip_89_df_794414.mp4",
+      "object_name": "bm472-eval/clips/clip_89_df_794414.mp4",
+      "code": 0,
+      "result": 90.55,
+      "score": 94.75,
+      "description": "Successful check",
+      "latency_s": 5.4144,
+      "error": null
+    },
+    {
+      "clip": "clip_90_warmup.mov",
+      "object_name": "bm472-eval/clips/clip_90_warmup.mov",
+      "code": 0,
+      "result": 100.0,
+      "score": 100.0,
+      "description": "Successful check",
+      "latency_s": 2.9241,
+      "error": null
+    }
+  ]
+}

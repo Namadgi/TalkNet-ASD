@@ -1,0 +1,504 @@
+{
+  "label_config": {
+    "unit": "clip",
+    "bucket": "biometry-test",
+    "prefix": "bm472-eval/clips/",
+    "source_sha256": "077240dcf234f4d07d046a671817f617791febd608b770585d70e5cab1f42a88",
+    "review_window": "First 10 seconds, or the whole clip if shorter",
+    "selection": "Every completed human binary label; face-uncertain entries retained",
+    "group_policy": "Known _df_ filenames reported separately, never treated as negative by default",
+    "n_labeled": 50,
+    "pending": [
+      "clip_51_own_video.webm",
+      "clip_52_own_video.webm",
+      "clip_53_own_video.webm",
+      "clip_54_own_video.webm",
+      "clip_55_own_video.webm",
+      "clip_56_own_video.webm",
+      "clip_57_own_video.webm",
+      "clip_58_bench_1_4.mp4",
+      "clip_60_bench_9_8.mp4",
+      "clip_62_bench_anna.mp4",
+      "clip_63_bench_enkidu.mp4",
+      "clip_64_bench_rysmende.mp4",
+      "clip_66_df_1.mp4",
+      "clip_67_df_10.mp4",
+      "clip_68_df_11.mp4",
+      "clip_69_df_12.mp4",
+      "clip_70_df_13.mp4",
+      "clip_71_df_2.mp4",
+      "clip_72_df_3.mp4",
+      "clip_73_df_4.mp4",
+      "clip_74_df_5.mp4",
+      "clip_75_df_6.mp4",
+      "clip_76_df_7.mp4",
+      "clip_77_df_8.mp4",
+      "clip_78_df_9.mp4",
+      "clip_79_df_426504.mp4",
+      "clip_81_df_515174.mp4",
+      "clip_82_df_549410.mp4",
+      "clip_83_df_586115.mp4",
+      "clip_84_df_607208.mp4",
+      "clip_85_df_634407.mp4",
+      "clip_86_df_684697.mp4",
+      "clip_87_df_723607.mp4",
+      "clip_88_df_764100.mp4",
+      "clip_89_df_794414.mp4",
+      "clip_90_warmup.mov"
+    ],
+    "removed_from_inventory": [
+      "clip_05_nBRhtp.webm",
+      "clip_08_iPvSDv.webm",
+      "clip_09_94X-jt.webm",
+      "clip_10_iVvXEF.webm"
+    ]
+  },
+  "positive_class": "speaking",
+  "prediction_rule": "API code == 0; code 2 remains negative and is separately counted",
+  "runs": {
+    "production": {
+      "provenance": {
+        "name": "labeled-production",
+        "endpoint": "https://labeled-prod---ml-asd-golden-lwdrsd6qmq-uc.a.run.app",
+        "revision": "ml-asd-golden-00010-mev",
+        "image": "us-central1-docker.pkg.dev/biometry-416410/cloud-run-source-deploy/talknet-asd/ml-asd@sha256:512e440d8bd7ac87cc3d11e6483189526e9e396b0332cd427897d00c9bf25f1c",
+        "evaluator_git_commit": "96fc126e2814d1e8714e36842b49953d7d39196b",
+        "mode": "gcs",
+        "bucket": "biometry-test",
+        "prefix": "bm472-eval/clips/",
+        "n_clips": 50,
+        "n_errors": 0,
+        "started_at": "2026-10-21T19:23:35Z",
+        "generated_at": "2026-10-21T19:28:12Z"
+      },
+      "metrics": {
+        "n": 50,
+        "tp": 36,
+        "tn": 12,
+        "fp": 2,
+        "fn": 0,
+        "accuracy": 0.96,
+        "precision": 0.9473684210526315,
+        "recall": 1.0,
+        "f1": 0.972972972972973,
+        "specificity": 0.8571428571428571,
+        "false_positive_rate": 0.14285714285714285,
+        "false_negative_rate": 0.0,
+        "no_face": {
+          "total": 5,
+          "on_speaking": [],
+          "on_not_speaking": [
+            "clip_03_AyeOzp.mp4",
+            "clip_28_own_video.webm",
+            "clip_30_own_video.webm",
+            "clip_34_own_video.webm",
+            "clip_40_own_video.webm"
+          ]
+        },
+        "misclassified": [
+          {
+            "clip": "clip_24_own_video.webm",
+            "truth_speaking": false,
+            "predicted_code": 0,
+            "result": 42.38,
+            "score": 67.99
+          },
+          {
+            "clip": "clip_35_own_video.webm",
+            "truth_speaking": false,
+            "predicted_code": 0,
+            "result": 19.66,
+            "score": 55.37
+          }
+        ]
+      },
+      "groups": {
+        "deepfake_robustness": {
+          "n": 2,
+          "tp": 2,
+          "tn": 0,
+          "fp": 0,
+          "fn": 0,
+          "accuracy": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "specificity": null,
+          "false_positive_rate": null,
+          "false_negative_rate": 0.0,
+          "no_face": {
+            "total": 0,
+            "on_speaking": [],
+            "on_not_speaking": []
+          },
+          "misclassified": []
+        },
+        "main": {
+          "n": 48,
+          "tp": 34,
+          "tn": 12,
+          "fp": 2,
+          "fn": 0,
+          "accuracy": 0.9583333333333334,
+          "precision": 0.9444444444444444,
+          "recall": 1.0,
+          "f1": 0.9714285714285714,
+          "specificity": 0.8571428571428571,
+          "false_positive_rate": 0.14285714285714285,
+          "false_negative_rate": 0.0,
+          "no_face": {
+            "total": 5,
+            "on_speaking": [],
+            "on_not_speaking": [
+              "clip_03_AyeOzp.mp4",
+              "clip_28_own_video.webm",
+              "clip_30_own_video.webm",
+              "clip_34_own_video.webm",
+              "clip_40_own_video.webm"
+            ]
+          },
+          "misclassified": [
+            {
+              "clip": "clip_24_own_video.webm",
+              "truth_speaking": false,
+              "predicted_code": 0,
+              "result": 42.38,
+              "score": 67.99
+            },
+            {
+              "clip": "clip_35_own_video.webm",
+              "truth_speaking": false,
+              "predicted_code": 0,
+              "result": 19.66,
+              "score": 55.37
+            }
+          ]
+        }
+      },
+      "face_presence_check": {
+        "n_known": 47,
+        "face_present_but_api_no_face": [
+          "clip_40_own_video.webm"
+        ],
+        "no_face_but_api_found_track": [
+          "clip_36_own_video.webm"
+        ],
+        "note": "Clip-level human visibility versus API usable-track outcome; not frame-level detector accuracy"
+      },
+      "latency_s": {
+        "mean": 5.528242,
+        "median": 5.569100000000001,
+        "max": 16.2779,
+        "n": 50,
+        "note": "Client HTTP latency; may include cold starts"
+      }
+    },
+    "stage1": {
+      "provenance": {
+        "name": "labeled-stage1",
+        "endpoint": "https://ml-asd-golden-lwdrsd6qmq-uc.a.run.app",
+        "revision": "ml-asd-golden-00003-hjh",
+        "image": "us-central1-docker.pkg.dev/biometry-416410/cloud-run-source-deploy/ml-asd-golden@sha256:327e288a784ec8a0605cdbc2fbd0f0131c07825b0e977e7476e5fba9d3b209f2",
+        "evaluator_git_commit": "96fc126e2814d1e8714e36842b49953d7d39196b",
+        "mode": "gcs",
+        "bucket": "biometry-test",
+        "prefix": "bm472-eval/clips/",
+        "n_clips": 50,
+        "n_errors": 0,
+        "started_at": "2026-10-21T19:24:21Z",
+        "generated_at": "2026-10-21T19:29:19Z"
+      },
+      "metrics": {
+        "n": 50,
+        "tp": 36,
+        "tn": 12,
+        "fp": 2,
+        "fn": 0,
+        "accuracy": 0.96,
+        "precision": 0.9473684210526315,
+        "recall": 1.0,
+        "f1": 0.972972972972973,
+        "specificity": 0.8571428571428571,
+        "false_positive_rate": 0.14285714285714285,
+        "false_negative_rate": 0.0,
+        "no_face": {
+          "total": 5,
+          "on_speaking": [],
+          "on_not_speaking": [
+            "clip_03_AyeOzp.mp4",
+            "clip_28_own_video.webm",
+            "clip_30_own_video.webm",
+            "clip_34_own_video.webm",
+            "clip_40_own_video.webm"
+          ]
+        },
+        "misclassified": [
+          {
+            "clip": "clip_24_own_video.webm",
+            "truth_speaking": false,
+            "predicted_code": 0,
+            "result": 42.38,
+            "score": 67.99
+          },
+          {
+            "clip": "clip_35_own_video.webm",
+            "truth_speaking": false,
+            "predicted_code": 0,
+            "result": 19.66,
+            "score": 55.37
+          }
+        ]
+      },
+      "groups": {
+        "deepfake_robustness": {
+          "n": 2,
+          "tp": 2,
+          "tn": 0,
+          "fp": 0,
+          "fn": 0,
+          "accuracy": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "specificity": null,
+          "false_positive_rate": null,
+          "false_negative_rate": 0.0,
+          "no_face": {
+            "total": 0,
+            "on_speaking": [],
+            "on_not_speaking": []
+          },
+          "misclassified": []
+        },
+        "main": {
+          "n": 48,
+          "tp": 34,
+          "tn": 12,
+          "fp": 2,
+          "fn": 0,
+          "accuracy": 0.9583333333333334,
+          "precision": 0.9444444444444444,
+          "recall": 1.0,
+          "f1": 0.9714285714285714,
+          "specificity": 0.8571428571428571,
+          "false_positive_rate": 0.14285714285714285,
+          "false_negative_rate": 0.0,
+          "no_face": {
+            "total": 5,
+            "on_speaking": [],
+            "on_not_speaking": [
+              "clip_03_AyeOzp.mp4",
+              "clip_28_own_video.webm",
+              "clip_30_own_video.webm",
+              "clip_34_own_video.webm",
+              "clip_40_own_video.webm"
+            ]
+          },
+          "misclassified": [
+            {
+              "clip": "clip_24_own_video.webm",
+              "truth_speaking": false,
+              "predicted_code": 0,
+              "result": 42.38,
+              "score": 67.99
+            },
+            {
+              "clip": "clip_35_own_video.webm",
+              "truth_speaking": false,
+              "predicted_code": 0,
+              "result": 19.66,
+              "score": 55.37
+            }
+          ]
+        }
+      },
+      "face_presence_check": {
+        "n_known": 47,
+        "face_present_but_api_no_face": [
+          "clip_40_own_video.webm"
+        ],
+        "no_face_but_api_found_track": [
+          "clip_36_own_video.webm"
+        ],
+        "note": "Clip-level human visibility versus API usable-track outcome; not frame-level detector accuracy"
+      },
+      "latency_s": {
+        "mean": 5.944764,
+        "median": 5.2235,
+        "max": 49.4831,
+        "n": 50,
+        "note": "Client HTTP latency; may include cold starts"
+      },
+      "paired_vs_first_run": {
+        "improved": [],
+        "worsened": [],
+        "code_changes": []
+      }
+    },
+    "raw": {
+      "provenance": {
+        "name": "labeled-raw",
+        "endpoint": "https://labeled-raw---ml-asd-golden-lwdrsd6qmq-uc.a.run.app",
+        "revision": "ml-asd-golden-00011-mot",
+        "image": "us-central1-docker.pkg.dev/biometry-416410/cloud-run-source-deploy/ml-asd-golden@sha256:b6b46343253004799e2d74ecec928850c821572c2c145868e619af8f60482bfc",
+        "evaluator_git_commit": "96fc126e2814d1e8714e36842b49953d7d39196b",
+        "mode": "gcs",
+        "bucket": "biometry-test",
+        "prefix": "bm472-eval/clips/",
+        "n_clips": 50,
+        "n_errors": 0,
+        "started_at": "2026-10-21T19:24:56Z",
+        "generated_at": "2026-10-21T19:27:22Z"
+      },
+      "metrics": {
+        "n": 50,
+        "tp": 36,
+        "tn": 11,
+        "fp": 3,
+        "fn": 0,
+        "accuracy": 0.94,
+        "precision": 0.9230769230769231,
+        "recall": 1.0,
+        "f1": 0.96,
+        "specificity": 0.7857142857142857,
+        "false_positive_rate": 0.21428571428571427,
+        "false_negative_rate": 0.0,
+        "no_face": {
+          "total": 4,
+          "on_speaking": [],
+          "on_not_speaking": [
+            "clip_03_AyeOzp.mp4",
+            "clip_28_own_video.webm",
+            "clip_30_own_video.webm",
+            "clip_34_own_video.webm"
+          ]
+        },
+        "misclassified": [
+          {
+            "clip": "clip_24_own_video.webm",
+            "truth_speaking": false,
+            "predicted_code": 0,
+            "result": 42.86,
+            "score": 68.26
+          },
+          {
+            "clip": "clip_35_own_video.webm",
+            "truth_speaking": false,
+            "predicted_code": 0,
+            "result": 11.97,
+            "score": 51.09
+          },
+          {
+            "clip": "clip_47_own_video.webm",
+            "truth_speaking": false,
+            "predicted_code": 0,
+            "result": 4.26,
+            "score": 21.3
+          }
+        ]
+      },
+      "groups": {
+        "deepfake_robustness": {
+          "n": 2,
+          "tp": 2,
+          "tn": 0,
+          "fp": 0,
+          "fn": 0,
+          "accuracy": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "specificity": null,
+          "false_positive_rate": null,
+          "false_negative_rate": 0.0,
+          "no_face": {
+            "total": 0,
+            "on_speaking": [],
+            "on_not_speaking": []
+          },
+          "misclassified": []
+        },
+        "main": {
+          "n": 48,
+          "tp": 34,
+          "tn": 11,
+          "fp": 3,
+          "fn": 0,
+          "accuracy": 0.9375,
+          "precision": 0.918918918918919,
+          "recall": 1.0,
+          "f1": 0.9577464788732394,
+          "specificity": 0.7857142857142857,
+          "false_positive_rate": 0.21428571428571427,
+          "false_negative_rate": 0.0,
+          "no_face": {
+            "total": 4,
+            "on_speaking": [],
+            "on_not_speaking": [
+              "clip_03_AyeOzp.mp4",
+              "clip_28_own_video.webm",
+              "clip_30_own_video.webm",
+              "clip_34_own_video.webm"
+            ]
+          },
+          "misclassified": [
+            {
+              "clip": "clip_24_own_video.webm",
+              "truth_speaking": false,
+              "predicted_code": 0,
+              "result": 42.86,
+              "score": 68.26
+            },
+            {
+              "clip": "clip_35_own_video.webm",
+              "truth_speaking": false,
+              "predicted_code": 0,
+              "result": 11.97,
+              "score": 51.09
+            },
+            {
+              "clip": "clip_47_own_video.webm",
+              "truth_speaking": false,
+              "predicted_code": 0,
+              "result": 4.26,
+              "score": 21.3
+            }
+          ]
+        }
+      },
+      "face_presence_check": {
+        "n_known": 47,
+        "face_present_but_api_no_face": [],
+        "no_face_but_api_found_track": [
+          "clip_36_own_video.webm"
+        ],
+        "note": "Clip-level human visibility versus API usable-track outcome; not frame-level detector accuracy"
+      },
+      "latency_s": {
+        "mean": 2.909878,
+        "median": 2.70635,
+        "max": 14.7592,
+        "n": 50,
+        "note": "Client HTTP latency; may include cold starts"
+      },
+      "paired_vs_first_run": {
+        "improved": [],
+        "worsened": [
+          "clip_47_own_video.webm"
+        ],
+        "code_changes": [
+          {
+            "clip": "clip_40_own_video.webm",
+            "before": 2,
+            "after": 1
+          },
+          {
+            "clip": "clip_47_own_video.webm",
+            "before": 1,
+            "after": 0
+          }
+        ]
+      }
+    }
+  }
+}

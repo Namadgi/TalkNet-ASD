@@ -1,0 +1,358 @@
+{
+  "config": {
+    "unit": "clip",
+    "bucket": "biometry-test",
+    "prefix": "bm472-eval/clips/",
+    "source_sha256": "077240dcf234f4d07d046a671817f617791febd608b770585d70e5cab1f42a88",
+    "review_window": "First 10 seconds, or the whole clip if shorter",
+    "selection": "Every completed human binary label; face-uncertain entries retained",
+    "group_policy": "Known _df_ filenames reported separately, never treated as negative by default",
+    "n_labeled": 50,
+    "pending": [
+      "clip_51_own_video.webm",
+      "clip_52_own_video.webm",
+      "clip_53_own_video.webm",
+      "clip_54_own_video.webm",
+      "clip_55_own_video.webm",
+      "clip_56_own_video.webm",
+      "clip_57_own_video.webm",
+      "clip_58_bench_1_4.mp4",
+      "clip_60_bench_9_8.mp4",
+      "clip_62_bench_anna.mp4",
+      "clip_63_bench_enkidu.mp4",
+      "clip_64_bench_rysmende.mp4",
+      "clip_66_df_1.mp4",
+      "clip_67_df_10.mp4",
+      "clip_68_df_11.mp4",
+      "clip_69_df_12.mp4",
+      "clip_70_df_13.mp4",
+      "clip_71_df_2.mp4",
+      "clip_72_df_3.mp4",
+      "clip_73_df_4.mp4",
+      "clip_74_df_5.mp4",
+      "clip_75_df_6.mp4",
+      "clip_76_df_7.mp4",
+      "clip_77_df_8.mp4",
+      "clip_78_df_9.mp4",
+      "clip_79_df_426504.mp4",
+      "clip_81_df_515174.mp4",
+      "clip_82_df_549410.mp4",
+      "clip_83_df_586115.mp4",
+      "clip_84_df_607208.mp4",
+      "clip_85_df_634407.mp4",
+      "clip_86_df_684697.mp4",
+      "clip_87_df_723607.mp4",
+      "clip_88_df_764100.mp4",
+      "clip_89_df_794414.mp4",
+      "clip_90_warmup.mov"
+    ],
+    "removed_from_inventory": [
+      "clip_05_nBRhtp.webm",
+      "clip_08_iPvSDv.webm",
+      "clip_09_94X-jt.webm",
+      "clip_10_iVvXEF.webm"
+    ]
+  },
+  "labels": [
+    {
+      "clip": "clip_01_A5zyTN.mp4",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_02_BWgaVQ.mp4",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_03_AyeOzp.mp4",
+      "speaking": false,
+      "face_present": "no",
+      "group": "main"
+    },
+    {
+      "clip": "clip_04_hJjTDB.mp4",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_06_DaJ_bM.webm",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_07_o9Bi82.webm",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_11_qJF25x.webm",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_12_8_JJx9.mp4",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_13_own_enkidu.mov",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_14_own_words.webm",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_15_own_test.mov",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_16_own_8956646981.webm",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_17_own_me.webm",
+      "speaking": true,
+      "face_present": "uncertain",
+      "group": "main"
+    },
+    {
+      "clip": "clip_18_own_IMG_3865.mov",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_19_own_async.mov",
+      "speaking": false,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_20_own_IMG_3866.mov",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_21_own_Movie_on_20-.mov",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_22_own_video.webm",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_23_own_video.webm",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_24_own_video.webm",
+      "speaking": false,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_25_own_video.webm",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_26_own_video.webm",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_27_own_video.webm",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_28_own_video.webm",
+      "speaking": false,
+      "face_present": "uncertain",
+      "group": "main"
+    },
+    {
+      "clip": "clip_29_own_video.webm",
+      "speaking": false,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_30_own_video.webm",
+      "speaking": false,
+      "face_present": "uncertain",
+      "group": "main"
+    },
+    {
+      "clip": "clip_31_own_video.webm",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_32_own_video.webm",
+      "speaking": false,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_33_own_video.webm",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_34_own_video.webm",
+      "speaking": false,
+      "face_present": "no",
+      "group": "main"
+    },
+    {
+      "clip": "clip_35_own_video.webm",
+      "speaking": false,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_36_own_video.webm",
+      "speaking": false,
+      "face_present": "no",
+      "group": "main"
+    },
+    {
+      "clip": "clip_37_own_video.webm",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_38_own_video.webm",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_39_own_video.webm",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_40_own_video.webm",
+      "speaking": false,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_41_own_video.webm",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_42_own_video.webm",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_43_own_video.webm",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_44_own_video.webm",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_45_own_video.webm",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_46_own_video.webm",
+      "speaking": false,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_47_own_video.webm",
+      "speaking": false,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_48_own_video.webm",
+      "speaking": false,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_49_own_video.webm",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_50_own_video.webm",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_59_bench_4_4.mp4",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_61_bench_aidana.mp4",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "main"
+    },
+    {
+      "clip": "clip_65_df_s.mp4",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "deepfake_robustness"
+    },
+    {
+      "clip": "clip_80_df_455513.mp4",
+      "speaking": true,
+      "face_present": "yes",
+      "group": "deepfake_robustness"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --build-arg
+      - BASE_IMAGE=${_BASE_IMAGE}
+      - -f
+      - Dockerfile.golden
+      - -t
+      - ${_IMAGE}
+      - .
+  # Media plumbing only, using the actual serving image's codec versions.
+  # Model quality/latency is evaluated separately on GPU Cloud Run.
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - run
+      - --rm
+      - --entrypoint
+      - python
+      - ${_IMAGE}
+      - -c
+      - |
+        import json, os, subprocess, tempfile
+        import av, numpy as np
+        from torchvision.io import read_video
+        from src.ml_models.audio import audio_to_pcm16
+        from src.ml_models.hybrid_media import read_hybrid_media
+        print('HYBRID_CODEC_VERSION', av.__version__, flush=True)
+        with tempfile.TemporaryDirectory() as directory:
+            for duration in ('0.6', '11'):
+                source = os.path.join(directory, 'source.mkv')
+                reference = os.path.join(directory, 'reference.mp4')
+                subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-f', 'lavfi', '-i', 'testsrc2=size=64x128:rate=30:duration=' + duration, '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=48000:duration=' + duration, '-c:v', 'ffv1', '-c:a', 'pcm_s16le', source], check=True)
+                subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', source, '-vf', 'scale=-2:640', '-qscale:v', '2', '-async', '1', '-r', '25', '-qscale:a', '0', '-ac', '1', '-threads', '10', '-ar', '16000', reference], check=True)
+                v, a, info = read_video(reference, end_pts=10, pts_unit='sec')
+                expected_v, expected_a = v.numpy(), audio_to_pcm16(a.numpy())
+                for mode in ('raw_video', 'raw_audio'):
+                    vv, aa, _ = read_hybrid_media(source, mode)
+                    exact = np.array_equal(expected_a, aa) if mode.endswith('_video') else np.array_equal(expected_v, vv)
+                    print('HYBRID_RETAINED_STREAM', json.dumps({'duration': duration, 'mode': mode, 'retained_exact': exact, 'video_frames': [len(expected_v), len(vv)], 'audio_samples': [len(expected_a), len(aa)]}), flush=True)
+                    assert exact, 'Untouched stream differs from reference'
+images:
+  - ${_IMAGE}

@@ -1,18 +1,16 @@
 import json
 import logging
-import cv2
 import time
 import os
 from fastapi import UploadFile, HTTPException
 import numpy as np
-import subprocess
 import torch
 import asyncio
 from typing import Optional, List, Dict, Any, Tuple
 from src.models import GCSRequest, ResponseModel
 from src.ml_models.mono import Mono
-from src.ml_models.audio import audio_to_pcm16
-from torchvision.io import read_video
+from src.ml_models.raw_media import read_raw_media
+from src.ml_models.hybrid_media import read_hybrid_media
 
 # OpenTelemetry imports
 import uuid
@@ -27,7 +25,6 @@ from opentelemetry.exporter.cloud_monitoring import CloudMonitoringMetricsExport
 from opentelemetry.trace import Status, StatusCode
 
 VIDEO_TEMP = 'input.mp4'
-VIDEO_OUTPUT = 'output.mp4'
 
 class MonoService:
     def __init__(self):
@@ -128,7 +125,7 @@ class MonoService:
                     preprocess_duration = time.time() - step_start_time
                     self.preprocess_duration.record(preprocess_duration)
                     preprocess_span.set_attribute("duration_seconds", preprocess_duration)
-                    preprocess_span.set_attribute("video_path", VIDEO_OUTPUT)
+                    preprocess_span.set_attribute("media_mode", os.getenv('ASD_MEDIA_MODE', 'raw'))
                     preprocess_span.set_attribute("audio_samples", len(audio))
 
                 # Inference
@@ -185,7 +182,7 @@ class MonoService:
         cur_time = time.time()
 
         # Clean up existing files
-        for file in [VIDEO_TEMP, VIDEO_OUTPUT]:
+        for file in [VIDEO_TEMP]:
             if os.path.isfile(file): os.remove(file)
 
         if isinstance(data, UploadFile):
@@ -250,74 +247,26 @@ class MonoService:
 
         logging.info(f"DL: {time.time() - cur_time:.4f}s")
 
-        # Process video with ffmpeg
-        with self.tracer.start_as_current_span("ffmpeg_transcoding") as ffmpeg_span:
-            cmd = ['ffmpeg', '-y']
-            if result_object_name.lower().endswith('.webm'):
-                cmd += ['-fflags', '+genpts']
-
-            cmd += ['-i', result_object_name]
-            cmd += [
-                '-vf', 'scale=-2:640',
-                '-qscale:v', '2',
-                '-async', '1',
-                '-r', '25'
-            ]
-
-            if result_object_name.lower().endswith('.webm'):
-                cmd += ['-max_muxing_queue_size', '1024']
-
-            cmd += [
-                '-qscale:a', '0',
-                '-ac', '1',
-                '-threads', '10',
-                '-ar', '16000'
-            ]
-
-            cmd += ['-loglevel', 'panic', VIDEO_OUTPUT]
-            ffmpeg_span.set_attribute("input_file", result_object_name)
-            ffmpeg_span.set_attribute("output_file", VIDEO_OUTPUT)
+        # Decode original compressed streams once; transport normalized raw
+        # frames over a timestamped pipe instead of encoding output.mp4 and
+        # immediately decompressing it again with torchvision.read_video.
+        with self.tracer.start_as_current_span("raw_media_normalization") as read_span:
             try:
-                start_ts = time.time()
-                subprocess.run(cmd, check=True, capture_output=True)
-                duration = time.time() - start_ts
-                ffmpeg_span.set_attribute("transcode_duration_seconds", duration)
-                ffmpeg_span.set_attribute("transcode_success", True)
-            except subprocess.CalledProcessError as e:
-                ffmpeg_span.record_exception(e)
-                ffmpeg_span.set_status(Status(StatusCode.ERROR, "FFmpeg transcoding failed"))
-                raise HTTPException(status_code=500, detail="Failed to process video with FFmpeg")
-
-        logging.info(f"VP: {time.time() - cur_time:.4f}s")
-
-        # Read video data
-        video_path = os.path.join(os.getcwd(), VIDEO_OUTPUT)
-
-        cur_time = time.time()
-        with self.tracer.start_as_current_span("read_video") as read_span:
-            try:
-                data_filename = os.path.abspath(video_path)
-                start_ts = time.time()
-                video_tensors = read_video(data_filename, end_pts=10, pts_unit="sec")
-                try:
-                    video = video_tensors[0].numpy()
-                except (IndexError, TypeError, AttributeError) as ie:
-                    read_span.record_exception(ie)
-                    read_span.set_status(Status(StatusCode.ERROR, "Video stream missing"))
-                    raise HTTPException(status_code=500, detail="Failed to extract video stream from processed file")
-                # Reuse the audio read_video already decoded instead of a second
-                # ffmpeg pass + wav read (BM-494). aframes: [channels, samples].
-                aframes = video_tensors[1]
-                info = video_tensors[2] if len(video_tensors) > 2 else {}
-                audio_fps = info.get("audio_fps")
-                if audio_fps != 16000:
-                    raise ValueError(f"Expected 16000 Hz audio, got {audio_fps}")
-                audio = audio_to_pcm16(aframes.detach().cpu().numpy())
+                mode = os.getenv('ASD_MEDIA_MODE', 'raw')
+                if mode == 'raw':
+                    video, audio, timings = read_raw_media(result_object_name)
+                else:
+                    video, audio, timings = read_hybrid_media(result_object_name, mode)
+                read_span.set_attribute("media_mode", mode)
                 read_span.set_attribute("audio_samples", len(audio))
-                duration = time.time() - start_ts
-                read_span.set_attribute("read_duration_seconds", duration)
+                read_span.set_attribute("video_frames", len(video))
+                for name, value in timings.items():
+                    read_span.set_attribute(name, value)
                 read_span.set_status(Status(StatusCode.OK))
-                logging.info(f"IP: {time.time() - cur_time:.4f}s")
+                # VP remains cumulative from before download. Its elapsed part
+                # now includes pipe unpacking; IP is only array assembly.
+                logging.info(f"VP: {time.time() - cur_time - timings['assemble_seconds']:.4f}s")
+                logging.info(f"IP: {timings['assemble_seconds']:.4f}s")
                 return video, audio
             except Exception as e:
                 read_span.record_exception(e)
