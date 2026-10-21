@@ -19,7 +19,7 @@ from src.ml_models.raw_media import END_SECONDS, FPS, SAMPLE_RATE
 
 
 def hybrid_command(path, retained_path, mode):
-    if mode not in ('raw_video', 'raw_audio', 'isolate_video', 'isolate_audio'):
+    if mode not in ('raw_video', 'raw_audio'):
         raise ValueError('Unknown hybrid media mode')
     cmd = ['ffmpeg', '-nostdin', '-y', '-hide_banner', '-loglevel', 'error']
     if path.lower().endswith('.webm'):
@@ -27,20 +27,6 @@ def hybrid_command(path, retained_path, mode):
     cmd += ['-i', path]
     video_options = ['-vf', 'scale=-2:640', '-r', str(FPS), '-threads', '10']
     audio_options = ['-async', '1', '-ac', '1', '-ar', str(SAMPLE_RATE), '-threads', '10']
-    if mode.startswith('isolate_'):
-        # Diagnostic control: reproduce the *entire* reference MP4 encoder
-        # context, then replace just one array. Do not use its timings as an
-        # optimized candidate: the discarded reference stream is still encoded.
-        cmd += ['-vf', 'scale=-2:640', '-qscale:v', '2', '-async', '1', '-r', str(FPS)]
-        if path.lower().endswith('.webm'):
-            cmd += ['-max_muxing_queue_size', '1024']
-        cmd += ['-qscale:a', '0', '-ac', '1', '-threads', '10', '-ar', str(SAMPLE_RATE), retained_path]
-        if mode == 'isolate_video':
-            cmd += ['-map', '0:v:0'] + video_options + [
-                '-vsync', 'cfr', '-c:v', 'rawvideo', '-pix_fmt', 'yuv420p', '-f', 'nut', 'pipe:1']
-        else:
-            cmd += ['-map', '0:a:0'] + audio_options + ['-c:a', 'pcm_s16le', '-f', 'nut', 'pipe:1']
-        return cmd
     if mode == 'raw_video':
         cmd += ['-map', '0:v:0'] + video_options + [
             '-vsync', 'cfr', '-c:v', 'rawvideo', '-pix_fmt', 'yuv420p', '-f', 'nut', 'pipe:1',
@@ -73,6 +59,9 @@ def _video_frames(container, drain=False):
 def _retained_audio(container):
     # Match torchvision.read_video: select AAC frames with PTS in [0, 10]
     # inclusive and concatenate their samples, including final AAC padding.
+    # torchvision seeks before decoding. With PyAV 12.3, skipping this seek
+    # changes AAC startup samples even for an otherwise identical bitstream.
+    container.seek(0, any_frame=False, backward=True, stream=container.streams.audio[0])
     frames = []
     for frame in container.decode(audio=0):
         if frame.pts is None or frame.sample_rate != SAMPLE_RATE:
