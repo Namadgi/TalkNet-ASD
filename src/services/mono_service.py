@@ -10,6 +10,7 @@ from typing import Optional, List, Dict, Any, Tuple
 from src.models import GCSRequest, ResponseModel
 from src.ml_models.mono import Mono
 from src.ml_models.raw_media import read_raw_media
+from src.ml_models.hybrid_media import read_hybrid_media
 
 # OpenTelemetry imports
 import uuid
@@ -124,7 +125,7 @@ class MonoService:
                     preprocess_duration = time.time() - step_start_time
                     self.preprocess_duration.record(preprocess_duration)
                     preprocess_span.set_attribute("duration_seconds", preprocess_duration)
-                    preprocess_span.set_attribute("media_mode", "raw_nut_pipe")
+                    preprocess_span.set_attribute("media_mode", os.getenv('ASD_MEDIA_MODE', 'raw'))
                     preprocess_span.set_attribute("audio_samples", len(audio))
 
                 # Inference
@@ -251,7 +252,12 @@ class MonoService:
         # immediately decompressing it again with torchvision.read_video.
         with self.tracer.start_as_current_span("raw_media_normalization") as read_span:
             try:
-                video, audio, timings = read_raw_media(result_object_name)
+                mode = os.getenv('ASD_MEDIA_MODE', 'raw')
+                if mode == 'raw':
+                    video, audio, timings = read_raw_media(result_object_name)
+                else:
+                    video, audio, timings = read_hybrid_media(result_object_name, mode)
+                read_span.set_attribute("media_mode", mode)
                 read_span.set_attribute("audio_samples", len(audio))
                 read_span.set_attribute("video_frames", len(video))
                 for name, value in timings.items():

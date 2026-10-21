@@ -1,0 +1,38 @@
+{
+  "config": {
+    "name": "raw-decision-repro",
+    "endpoint": "https://raw-debug---ml-asd-golden-lwdrsd6qmq-uc.a.run.app",
+    "revision": "ml-asd-golden-00004-hv6",
+    "image": "us-central1-docker.pkg.dev/biometry-416410/cloud-run-source-deploy/ml-asd-golden@sha256:a8cfb6a395b42a4d78332517c388f573a066c3a9301d206c8c9d957ab3eff889",
+    "evaluator_git_commit": "c368b30a9b135eaab014f532dadff0df10a1b8a1",
+    "mode": "gcs",
+    "bucket": "biometry-test",
+    "prefix": "bm472-eval/clips/",
+    "n_clips": 2,
+    "n_errors": 0,
+    "started_at": "2026-10-21T17:10:07Z",
+    "generated_at": "2026-10-21T17:10:55Z"
+  },
+  "results": [
+    {
+      "clip": "clip_40_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_40_own_video.webm",
+      "code": 1,
+      "result": 0.0,
+      "score": 0.0,
+      "description": "Person is not speaking",
+      "latency_s": 45.2339,
+      "error": null
+    },
+    {
+      "clip": "clip_47_own_video.webm",
+      "object_name": "bm472-eval/clips/clip_47_own_video.webm",
+      "code": 0,
+      "result": 4.26,
+      "score": 21.3,
+      "description": "Successful check",
+      "latency_s": 2.7805,
+      "error": null
+    }
+  ]
+}

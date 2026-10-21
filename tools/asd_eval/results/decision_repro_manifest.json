@@ -1,0 +1,7 @@
+{
+  "config": {"bucket": "biometry-test", "prefix": "bm472-eval/clips/"},
+  "results": [
+    {"clip": "clip_40_own_video.webm", "object_name": "bm472-eval/clips/clip_40_own_video.webm"},
+    {"clip": "clip_47_own_video.webm", "object_name": "bm472-eval/clips/clip_47_own_video.webm"}
+  ]
+}
