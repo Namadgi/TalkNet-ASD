@@ -55,6 +55,19 @@ class HybridMediaTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             read_hybrid_media('unused', 'invalid')
 
+    def test_full_reference_video_isolation_preserves_audio(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source, reference_video, reference_audio = self.reference(directory)
+            video, audio, _ = read_hybrid_media(source, 'isolate_video')
+        np.testing.assert_array_equal(audio, reference_audio)
+        self.assertEqual(video.shape, reference_video.shape)
+
+    def test_full_reference_audio_isolation_preserves_video(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source, reference_video, _ = self.reference(directory)
+            video, _, _ = read_hybrid_media(source, 'isolate_audio')
+        np.testing.assert_array_equal(video, reference_video)
+
     def test_timeout_stops_decoder(self):
         with tempfile.TemporaryDirectory() as directory:
             source, _, _ = self.reference(directory)

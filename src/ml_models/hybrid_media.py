@@ -19,14 +19,28 @@ from src.ml_models.raw_media import END_SECONDS, FPS, SAMPLE_RATE
 
 
 def hybrid_command(path, retained_path, mode):
-    if mode not in ('raw_video', 'raw_audio'):
-        raise ValueError('Expected raw_video or raw_audio mode')
+    if mode not in ('raw_video', 'raw_audio', 'isolate_video', 'isolate_audio'):
+        raise ValueError('Unknown hybrid media mode')
     cmd = ['ffmpeg', '-nostdin', '-y', '-hide_banner', '-loglevel', 'error']
     if path.lower().endswith('.webm'):
         cmd += ['-fflags', '+genpts']
     cmd += ['-i', path]
     video_options = ['-vf', 'scale=-2:640', '-r', str(FPS), '-threads', '10']
     audio_options = ['-async', '1', '-ac', '1', '-ar', str(SAMPLE_RATE), '-threads', '10']
+    if mode.startswith('isolate_'):
+        # Diagnostic control: reproduce the *entire* reference MP4 encoder
+        # context, then replace just one array. Do not use its timings as an
+        # optimized candidate: the discarded reference stream is still encoded.
+        cmd += ['-vf', 'scale=-2:640', '-qscale:v', '2', '-async', '1', '-r', str(FPS)]
+        if path.lower().endswith('.webm'):
+            cmd += ['-max_muxing_queue_size', '1024']
+        cmd += ['-qscale:a', '0', '-ac', '1', '-threads', '10', '-ar', str(SAMPLE_RATE), retained_path]
+        if mode == 'isolate_video':
+            cmd += ['-map', '0:v:0'] + video_options + [
+                '-vsync', 'cfr', '-c:v', 'rawvideo', '-pix_fmt', 'yuv420p', '-f', 'nut', 'pipe:1']
+        else:
+            cmd += ['-map', '0:a:0'] + audio_options + ['-c:a', 'pcm_s16le', '-f', 'nut', 'pipe:1']
+        return cmd
     if mode == 'raw_video':
         cmd += ['-map', '0:v:0'] + video_options + [
             '-vsync', 'cfr', '-c:v', 'rawvideo', '-pix_fmt', 'yuv420p', '-f', 'nut', 'pipe:1',
@@ -97,6 +111,7 @@ def _raw_audio(container):
 
 def read_hybrid_media(path, mode, timeout=120):
     start = time.perf_counter()
+    video_raw = mode.endswith('_video')
     with tempfile.TemporaryDirectory(prefix='asd-hybrid-') as directory:
         retained_path = os.path.join(directory, 'retained.m4a' if mode == 'raw_video' else 'retained.mp4')
         with tempfile.TemporaryFile() as errors:
@@ -116,7 +131,7 @@ def read_hybrid_media(path, mode, timeout=120):
             timer.start()
             try:
                 with av.open(process.stdout, mode='r', format='nut') as container:
-                    raw = _video_frames(container, drain=True) if mode == 'raw_video' else _raw_audio(container)
+                    raw = _video_frames(container, drain=True) if video_raw else _raw_audio(container)
                 result = process.wait()
                 if expired.is_set():
                     raise TimeoutError('Hybrid normalization timed out')
@@ -135,8 +150,8 @@ def read_hybrid_media(path, mode, timeout=120):
                 process.wait()
         normalized_at = time.perf_counter()
         with av.open(retained_path) as container:
-            retained = _retained_audio(container) if mode == 'raw_video' else _video_frames(container)
-        video, audio = (raw, retained) if mode == 'raw_video' else (retained, raw)
+            retained = _retained_audio(container) if video_raw else _video_frames(container)
+        video, audio = (raw, retained) if video_raw else (retained, raw)
         return video, audio, {
             'normalize_unpack_seconds': normalized_at - start,
             'assemble_seconds': time.perf_counter() - normalized_at,
