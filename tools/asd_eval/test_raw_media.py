@@ -9,6 +9,7 @@ import subprocess
 import tempfile
 import unittest
 
+import av
 import numpy as np
 
 from src.ml_models.raw_media import read_raw_media
@@ -31,10 +32,20 @@ class RawMediaTests(unittest.TestCase):
 
     def test_normalized_shapes_and_rgb_order(self):
         with tempfile.TemporaryDirectory() as directory:
-            video, audio, timings = read_raw_media(self.make_clip(directory))
-        # FFmpeg's legacy -r conversion flushes two tail frames for this
-        # 30fps fixture, just like the previous MP4 normalization command.
-        self.assertEqual(video.shape, (12, 640, 320, 3))
+            source = self.make_clip(directory)
+            video, audio, timings = read_raw_media(source)
+            reference = os.path.join(directory, 'reference.mp4')
+            subprocess.run([
+                'ffmpeg', '-y', '-loglevel', 'error', '-i', source,
+                '-vf', 'scale=-2:640', '-qscale:v', '2', '-async', '1',
+                '-r', '25', '-qscale:a', '0', '-ac', '1', '-threads', '10',
+                '-ar', '16000', reference,
+            ], check=True, capture_output=True)
+            with av.open(reference) as container:
+                expected_frames = sum(1 for _ in container.decode(video=0))
+        # Match the previous normalizer's frame count, including its tail
+        # flush behavior (which can vary between FFmpeg versions).
+        self.assertEqual(video.shape, (expected_frames, 640, 320, 3))
         self.assertEqual(video.dtype, np.uint8)
         self.assertEqual(audio.dtype, np.int16)
         self.assertAlmostEqual(len(audio) / 16000, 0.4, places=2)
@@ -59,6 +70,12 @@ class RawMediaTests(unittest.TestCase):
             for path in (self.make_clip(directory, audio=False), os.path.join(directory, 'missing.mp4')):
                 with self.subTest(path=path), self.assertRaises((ValueError, RuntimeError)):
                     read_raw_media(path)
+
+    def test_timeout_stops_decoder(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = self.make_clip(directory)
+            with self.assertRaises(TimeoutError):
+                read_raw_media(path, timeout=0.00001)
 
 
 if __name__ == '__main__':
