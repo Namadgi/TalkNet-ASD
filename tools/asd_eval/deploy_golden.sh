@@ -4,13 +4,22 @@
 # resources. Auth is required (no --allow-unauthenticated); the runner sends a
 # gcloud identity token via --auth.
 #
-# Run from repo root: tools/asd_eval/deploy_golden.sh [SERVICE_NAME] [BASELINE_IMAGE_DIGEST]
+# Run from repo root: tools/asd_eval/deploy_golden.sh [SERVICE_NAME] [BASELINE_IMAGE_DIGEST] [MEDIA_MODE]
 set -euo pipefail
 
 SERVICE="${1:-ml-asd-golden}"
 PROJECT="biometry-416410"
 REGION="us-central1"
 BASE_IMAGE="${2:-}"
+MEDIA_MODE="${3:-}"
+# Do not accidentally inherit a previous experiment's mode on later deploys.
+MEDIA_ARGS=(--remove-env-vars ASD_MEDIA_MODE)
+if [[ -n "$MEDIA_MODE" ]]; then
+  case "$MEDIA_MODE" in
+    raw|raw_video|raw_audio) MEDIA_ARGS=(--update-env-vars "ASD_MEDIA_MODE=$MEDIA_MODE") ;;
+    *) echo "Unknown media mode: $MEDIA_MODE" >&2; exit 1 ;;
+  esac
+fi
 
 # For candidates, preserve the baseline's exact installed dependencies/codecs.
 if [[ -n "$BASE_IMAGE" ]]; then
@@ -30,7 +39,7 @@ if [[ -n "$BASE_IMAGE" ]]; then
   DIGEST=$(gcloud builds describe "$BUILD_ID" --project "$PROJECT" --region "$REGION" \
     --format='value(results.images[0].digest)')
   gcloud run deploy "$SERVICE" --image "${IMAGE%:*}@$DIGEST" \
-    --project "$PROJECT" --region "$REGION"
+    --project "$PROJECT" --region "$REGION" "${MEDIA_ARGS[@]}"
   exit
 fi
 
@@ -40,6 +49,7 @@ gcloud run deploy "$SERVICE" \
   --source . \
   --project "$PROJECT" \
   --region "$REGION" \
+  "${MEDIA_ARGS[@]}" \
   --gpu 1 \
   --gpu-type nvidia-l4 \
   --no-gpu-zonal-redundancy \
