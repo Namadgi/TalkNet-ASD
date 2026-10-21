@@ -29,6 +29,7 @@ Output JSON:
 """
 import argparse
 import json
+import math
 import os
 import subprocess
 import sys
@@ -109,6 +110,9 @@ def main():
     ap.add_argument("--limit", type=int, default=0, help="first N clips only (0=all)")
     ap.add_argument("--timeout", type=int, default=300, help="per-request timeout s")
     ap.add_argument("--name", default="", help="run label stored in config")
+    ap.add_argument("--manifest", help="reuse the clip list from an existing run JSON")
+    ap.add_argument("--revision", help="Cloud Run revision evaluated (for provenance)")
+    ap.add_argument("--image", help="Immutable image digest evaluated (for provenance)")
     args = ap.parse_args()
 
     os.makedirs(args.cache, exist_ok=True)
@@ -119,15 +123,26 @@ def main():
         headers["Authorization"] = f"Bearer {identity_token()}"
     acc_tok = access_token() if args.mode == "gcs" else None
 
-    objs = list_objects(args.bucket, args.prefix, args.project)
+    if args.manifest:
+        with open(args.manifest) as f:
+            manifest = json.load(f)
+        if (manifest["config"]["bucket"], manifest["config"]["prefix"]) != (args.bucket, args.prefix):
+            raise ValueError("Manifest bucket/prefix must match this run")
+        objs = [(r.get("object_name", args.prefix + r["clip"]), r["clip"])
+                for r in manifest["results"]]
+    else:
+        objs = list_objects(args.bucket, args.prefix, args.project)
+    if not objs or len({name for _, name in objs}) != len(objs):
+        raise ValueError("Corpus is empty or has duplicate clip names")
     if args.limit:
         objs = objs[: args.limit]
     print(f"{len(objs)} clips from gs://{args.bucket}/{args.prefix} (mode={args.mode})",
           file=sys.stderr)
 
+    started_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     results = []
     for i, (object_name, name) in enumerate(objs, 1):
-        rec = {"clip": name, "code": None, "result": None, "score": None,
+        rec = {"clip": name, "object_name": object_name, "code": None, "result": None, "score": None,
                "description": None, "latency_s": None, "error": None}
         try:
             if args.mode == "gcs":
@@ -137,6 +152,13 @@ def main():
                 body, latency = call_upload(args.endpoint, args.bucket, object_name,
                                             args.project, args.cache, headers,
                                             args.timeout)
+            if type(body.get("code")) is not int or body["code"] not in (0, 1, 2):
+                raise ValueError("Response has an invalid/missing decision code")
+            for field in ("result", "score"):
+                value = body.get(field)
+                if (type(value) not in (int, float) or not math.isfinite(value)
+                        or not 0 <= value <= 100):
+                    raise ValueError(f"Response has an invalid/missing {field}")
             rec.update(code=body.get("code"), result=body.get("result"),
                        score=body.get("score"), description=body.get("description"),
                        latency_s=round(latency, 4))
@@ -155,11 +177,15 @@ def main():
         "config": {
             "name": args.name or os.path.splitext(os.path.basename(args.out))[0],
             "endpoint": args.endpoint,
+            "revision": args.revision,
+            "image": args.image,
+            "evaluator_git_commit": sh(["git", "rev-parse", "HEAD"]).strip(),
             "mode": args.mode,
             "bucket": args.bucket,
             "prefix": args.prefix,
             "n_clips": len(results),
             "n_errors": sum(1 for r in results if r["error"]),
+            "started_at": started_at,
             "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         },
         "results": results,
@@ -167,6 +193,8 @@ def main():
     with open(args.out, "w") as f:
         json.dump(payload, f, indent=2)
     print(f"wrote {args.out}  (errors: {payload['config']['n_errors']})", file=sys.stderr)
+    if payload["config"]["n_errors"]:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

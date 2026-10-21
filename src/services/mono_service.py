@@ -11,6 +11,7 @@ import asyncio
 from typing import Optional, List, Dict, Any, Tuple
 from src.models import GCSRequest, ResponseModel
 from src.ml_models.mono import Mono
+from src.ml_models.audio import audio_to_pcm16
 from torchvision.io import read_video
 
 # OpenTelemetry imports
@@ -27,7 +28,6 @@ from opentelemetry.trace import Status, StatusCode
 
 VIDEO_TEMP = 'input.mp4'
 VIDEO_OUTPUT = 'output.mp4'
-AUDIO_OUTPUT = 'output.mp4'
 
 class MonoService:
     def __init__(self):
@@ -124,17 +124,17 @@ class MonoService:
                 # Preprocess
                 with self.tracer.start_as_current_span("preprocess") as preprocess_span:
                     step_start_time = time.time()
-                    X, v_path, a_path = self.preprocess(data)
+                    X, audio = self.preprocess(data)
                     preprocess_duration = time.time() - step_start_time
                     self.preprocess_duration.record(preprocess_duration)
                     preprocess_span.set_attribute("duration_seconds", preprocess_duration)
-                    preprocess_span.set_attribute("video_path", v_path or "")
-                    preprocess_span.set_attribute("audio_path", a_path or "")
+                    preprocess_span.set_attribute("video_path", VIDEO_OUTPUT)
+                    preprocess_span.set_attribute("audio_samples", len(audio))
 
                 # Inference
                 with self.tracer.start_as_current_span("inference") as inference_span:
                     step_start_time = time.time()
-                    Y = self.inference(X, v_path, a_path)
+                    Y = self.inference(X, audio)
                     inference_duration = time.time() - step_start_time
                     self.inference_duration.record(inference_duration)
                     inference_span.set_attribute("duration_seconds", inference_duration)
@@ -173,11 +173,11 @@ class MonoService:
                 span.set_attribute("error_message", str(e))
                 raise HTTPException(status_code=500, detail=str(e))
 
-    def preprocess(self, data: Any) -> Tuple[Optional[np.ndarray], Optional[str], Optional[str]]:
+    def preprocess(self, data: Any) -> Tuple[np.ndarray, np.ndarray]:
         """
         Transform raw input into model input data.
         :param data: Input data (either file upload or GCS request)
-        :return: tuple of (video, video_path, audio_path)
+        :return: tuple of (RGB video frames, mono PCM16 audio samples)
         """
         if data is None:
             raise HTTPException(status_code=400, detail="Input data is required")
@@ -185,7 +185,7 @@ class MonoService:
         cur_time = time.time()
 
         # Clean up existing files
-        for file in [VIDEO_TEMP, VIDEO_OUTPUT, AUDIO_OUTPUT]:
+        for file in [VIDEO_TEMP, VIDEO_OUTPUT]:
             if os.path.isfile(file): os.remove(file)
 
         if isinstance(data, UploadFile):
@@ -292,7 +292,6 @@ class MonoService:
 
         # Read video data
         video_path = os.path.join(os.getcwd(), VIDEO_OUTPUT)
-        audio_path = os.path.join(os.getcwd(), AUDIO_OUTPUT)
 
         cur_time = time.time()
         with self.tracer.start_as_current_span("read_video") as read_span:
@@ -306,39 +305,47 @@ class MonoService:
                     read_span.record_exception(ie)
                     read_span.set_status(Status(StatusCode.ERROR, "Video stream missing"))
                     raise HTTPException(status_code=500, detail="Failed to extract video stream from processed file")
+                # Reuse the audio read_video already decoded instead of a second
+                # ffmpeg pass + wav read (BM-494). aframes: [channels, samples].
+                aframes = video_tensors[1]
+                info = video_tensors[2] if len(video_tensors) > 2 else {}
+                audio_fps = info.get("audio_fps")
+                if audio_fps != 16000:
+                    raise ValueError(f"Expected 16000 Hz audio, got {audio_fps}")
+                audio = audio_to_pcm16(aframes.detach().cpu().numpy())
+                read_span.set_attribute("audio_samples", len(audio))
                 duration = time.time() - start_ts
                 read_span.set_attribute("read_duration_seconds", duration)
                 read_span.set_status(Status(StatusCode.OK))
                 logging.info(f"IP: {time.time() - cur_time:.4f}s")
-                return video, video_path, audio_path
+                return video, audio
             except Exception as e:
                 read_span.record_exception(e)
                 read_span.set_status(Status(StatusCode.ERROR, "Failed to read video data"))
                 raise HTTPException(status_code=500, detail="Failed to read video data")
 
-    def inference(self, X: np.ndarray, v_path: str, a_path: str) -> Optional[Any]:
+    def inference(self, X: np.ndarray, audio: np.ndarray) -> Optional[Any]:
         """
         Internal inference methods
         :param X: Input video data
-        :param v_path: Video path
-        :param a_path: Audio path
+        :param audio: Decoded 16 kHz mono int16 audio (reused from read_video)
         :return: output
         """
         if not self.initialized:
             raise HTTPException(status_code=503, detail="Model not initialized")
 
-        if X is None or v_path is None or a_path is None:
+        if X is None or audio is None:
             raise HTTPException(status_code=400, detail="Invalid input parameters")
 
         with self.tracer.start_as_current_span("model_inference") as span:
-            span.set_attribute("video_path", v_path)
-            span.set_attribute("audio_path", a_path)
+            span.set_attribute("video_frames", len(X))
+            span.set_attribute("audio_samples", len(audio))
             span.set_attribute("device", str(self.device))
             try:
                 self.model.eval()
                 with self.tracer.start_as_current_span("torch_inference"):
                     with torch.no_grad():
-                        y = self.model(X, v_path, a_path, self.device)
+                        y = self.model(X, audio, self.device)
                 span.set_attribute("prediction_success", True)
                 span.set_status(Status(StatusCode.OK))
                 return y

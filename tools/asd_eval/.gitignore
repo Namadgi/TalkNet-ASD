@@ -4,3 +4,9 @@ __pycache__/
 !results/*.json
 # ...except throwaway smoke-test output.
 results/smoke.json
+results/*_smoke.json
+results/*_warmup.json
+results/*.log
+# Local session checkpoint; evaluation reports are committed separately.
+RESUME.md
+README.md

@@ -1,0 +1,6 @@
+# Preserve the baseline's exact dependencies, system codecs, and model weights.
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+USER root
+COPY --chown=appuser:appuser src/ /home/app/src/
+USER appuser

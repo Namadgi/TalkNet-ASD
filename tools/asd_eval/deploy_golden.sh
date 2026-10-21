@@ -4,12 +4,35 @@
 # resources. Auth is required (no --allow-unauthenticated); the runner sends a
 # gcloud identity token via --auth.
 #
-# Run from repo root:  tools/asd_eval/deploy_golden.sh [SERVICE_NAME]
+# Run from repo root: tools/asd_eval/deploy_golden.sh [SERVICE_NAME] [BASELINE_IMAGE_DIGEST]
 set -euo pipefail
 
 SERVICE="${1:-ml-asd-golden}"
 PROJECT="biometry-416410"
 REGION="us-central1"
+BASE_IMAGE="${2:-}"
+
+# For candidates, preserve the baseline's exact installed dependencies/codecs.
+if [[ -n "$BASE_IMAGE" ]]; then
+  IMAGE="us-central1-docker.pkg.dev/$PROJECT/cloud-run-source-deploy/$SERVICE:bm494-$(date -u +%Y%m%d%H%M%S)"
+  BUILD_ID=$(gcloud builds submit --project "$PROJECT" --region "$REGION" \
+    --config tools/asd_eval/cloudbuild.candidate.yaml \
+    --substitutions "_BASE_IMAGE=$BASE_IMAGE,_IMAGE=$IMAGE" --async --format='value(id)')
+  while true; do
+    STATUS=$(gcloud builds describe "$BUILD_ID" --project "$PROJECT" --region "$REGION" \
+      --format='value(status)')
+    case "$STATUS" in
+      SUCCESS) break ;;
+      QUEUED|PENDING|WORKING) sleep 10 ;;
+      *) echo "Build $BUILD_ID failed: $STATUS" >&2; exit 1 ;;
+    esac
+  done
+  DIGEST=$(gcloud builds describe "$BUILD_ID" --project "$PROJECT" --region "$REGION" \
+    --format='value(results.images[0].digest)')
+  gcloud run deploy "$SERVICE" --image "${IMAGE%:*}@$DIGEST" \
+    --project "$PROJECT" --region "$REGION"
+  exit
+fi
 
 echo ">> deploying '$SERVICE' from source (branch: $(git branch --show-current))"
 
