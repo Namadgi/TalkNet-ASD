@@ -16,7 +16,7 @@ MEDIA_MODE="${3:-}"
 MEDIA_ARGS=(--remove-env-vars ASD_MEDIA_MODE)
 if [[ -n "$MEDIA_MODE" ]]; then
   case "$MEDIA_MODE" in
-    raw|raw_video|raw_audio) MEDIA_ARGS=(--update-env-vars "ASD_MEDIA_MODE=$MEDIA_MODE") ;;
+    validated|raw|raw_video|raw_audio) MEDIA_ARGS=(--update-env-vars "ASD_MEDIA_MODE=$MEDIA_MODE") ;;
     *) echo "Unknown media mode: $MEDIA_MODE" >&2; exit 1 ;;
   esac
 fi

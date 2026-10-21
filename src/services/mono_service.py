@@ -9,8 +9,7 @@ import asyncio
 from typing import Optional, List, Dict, Any, Tuple
 from src.models import GCSRequest, ResponseModel
 from src.ml_models.mono import Mono
-from src.ml_models.raw_media import read_raw_media
-from src.ml_models.hybrid_media import read_hybrid_media
+from src.ml_models.media import get_media_mode, read_media
 
 # OpenTelemetry imports
 import uuid
@@ -125,7 +124,7 @@ class MonoService:
                     preprocess_duration = time.time() - step_start_time
                     self.preprocess_duration.record(preprocess_duration)
                     preprocess_span.set_attribute("duration_seconds", preprocess_duration)
-                    preprocess_span.set_attribute("media_mode", os.getenv('ASD_MEDIA_MODE', 'raw'))
+                    preprocess_span.set_attribute("media_mode", get_media_mode())
                     preprocess_span.set_attribute("audio_samples", len(audio))
 
                 # Inference
@@ -247,24 +246,20 @@ class MonoService:
 
         logging.info(f"DL: {time.time() - cur_time:.4f}s")
 
-        # Decode original compressed streams once; transport normalized raw
-        # frames over a timestamped pipe instead of encoding output.mp4 and
-        # immediately decompressing it again with torchvision.read_video.
-        with self.tracer.start_as_current_span("raw_media_normalization") as read_span:
+        # Keep the validated MP4/read_video path and raw alternatives separate.
+        # Configuration selects the reader; inference and response rules are shared.
+        with self.tracer.start_as_current_span("media_normalization") as read_span:
             try:
-                mode = os.getenv('ASD_MEDIA_MODE', 'raw')
-                if mode == 'raw':
-                    video, audio, timings = read_raw_media(result_object_name)
-                else:
-                    video, audio, timings = read_hybrid_media(result_object_name, mode)
+                mode = get_media_mode()
+                video, audio, timings = read_media(result_object_name)
                 read_span.set_attribute("media_mode", mode)
                 read_span.set_attribute("audio_samples", len(audio))
                 read_span.set_attribute("video_frames", len(video))
                 for name, value in timings.items():
                     read_span.set_attribute(name, value)
                 read_span.set_status(Status(StatusCode.OK))
-                # VP remains cumulative from before download. Its elapsed part
-                # now includes pipe unpacking; IP is only array assembly.
+                # VP is cumulative from before download. For validated mode IP
+                # includes read_video; for raw mode it is only array assembly.
                 logging.info(f"VP: {time.time() - cur_time - timings['assemble_seconds']:.4f}s")
                 logging.info(f"IP: {timings['assemble_seconds']:.4f}s")
                 return video, audio
