@@ -1,17 +1,15 @@
 import json
 import logging
-import cv2
 import time
 import os
 from fastapi import UploadFile, HTTPException
 import numpy as np
-import subprocess
 import torch
 import asyncio
 from typing import Optional, List, Dict, Any, Tuple
 from src.models import GCSRequest, ResponseModel
 from src.ml_models.mono import Mono
-from torchvision.io import read_video
+from src.ml_models.raw_media import read_raw_media
 
 # OpenTelemetry imports
 import uuid
@@ -26,8 +24,6 @@ from opentelemetry.exporter.cloud_monitoring import CloudMonitoringMetricsExport
 from opentelemetry.trace import Status, StatusCode
 
 VIDEO_TEMP = 'input.mp4'
-VIDEO_OUTPUT = 'output.mp4'
-AUDIO_OUTPUT = 'output.mp4'
 
 class MonoService:
     def __init__(self):
@@ -116,17 +112,17 @@ class MonoService:
                 # Preprocess
                 with self.tracer.start_as_current_span("preprocess") as preprocess_span:
                     step_start_time = time.time()
-                    X, v_path, a_path = self.preprocess(data)
+                    X, audio = self.preprocess(data)
                     preprocess_duration = time.time() - step_start_time
                     self.preprocess_duration.record(preprocess_duration)
                     preprocess_span.set_attribute("duration_seconds", preprocess_duration)
-                    preprocess_span.set_attribute("video_path", v_path or "")
-                    preprocess_span.set_attribute("audio_path", a_path or "")
+                    preprocess_span.set_attribute("media_mode", "raw")
+                    preprocess_span.set_attribute("audio_samples", len(audio))
 
                 # Inference
                 with self.tracer.start_as_current_span("inference") as inference_span:
                     step_start_time = time.time()
-                    Y = self.inference(X, v_path, a_path)
+                    Y = self.inference(X, audio)
                     inference_duration = time.time() - step_start_time
                     self.inference_duration.record(inference_duration)
                     inference_span.set_attribute("duration_seconds", inference_duration)
@@ -160,20 +156,19 @@ class MonoService:
                 span.set_attribute("error_message", str(e))
                 raise HTTPException(status_code=500, detail=str(e))
 
-    def preprocess(self, data: Any) -> Tuple[Optional[np.ndarray], Optional[str], Optional[str]]:
+    def preprocess(self, data: Any) -> Tuple[np.ndarray, np.ndarray]:
         """
         Transform raw input into model input data.
         :param data: Input data (either file upload or GCS request)
-        :return: tuple of (video, video_path, audio_path)
+        :return: tuple of (RGB video frames, mono PCM16 audio samples)
         """
         if data is None:
             raise HTTPException(status_code=400, detail="Input data is required")
 
         cur_time = time.time()
 
-        # Clean up existing files
-        for file in [VIDEO_TEMP, VIDEO_OUTPUT, AUDIO_OUTPUT]:
-            if os.path.isfile(file): os.remove(file)
+        if os.path.isfile(VIDEO_TEMP):
+            os.remove(VIDEO_TEMP)
 
         if isinstance(data, UploadFile):
             # Handle file upload
@@ -237,95 +232,47 @@ class MonoService:
 
         logging.info(f"DL: {time.time() - cur_time:.4f}s")
 
-        # Process video with ffmpeg
-        with self.tracer.start_as_current_span("ffmpeg_transcoding") as ffmpeg_span:
-            cmd = ['ffmpeg', '-y']
-            if result_object_name.lower().endswith('.webm'):
-                cmd += ['-fflags', '+genpts']
-
-            cmd += ['-i', result_object_name]
-            cmd += [
-                '-vf', 'scale=-2:640',
-                '-qscale:v', '2',
-                '-async', '1',
-                '-r', '25'
-            ]
-
-            if result_object_name.lower().endswith('.webm'):
-                cmd += ['-max_muxing_queue_size', '1024']
-
-            cmd += [
-                '-qscale:a', '0',
-                '-ac', '1',
-                '-threads', '10',
-                '-ar', '16000'
-            ]
-
-            cmd += ['-loglevel', 'panic', VIDEO_OUTPUT]
-            ffmpeg_span.set_attribute("input_file", result_object_name)
-            ffmpeg_span.set_attribute("output_file", VIDEO_OUTPUT)
+        # Decode and normalize directly into raw arrays, avoiding an MP4 roundtrip.
+        with self.tracer.start_as_current_span("media_normalization") as read_span:
             try:
-                start_ts = time.time()
-                subprocess.run(cmd, check=True, capture_output=True)
-                duration = time.time() - start_ts
-                ffmpeg_span.set_attribute("transcode_duration_seconds", duration)
-                ffmpeg_span.set_attribute("transcode_success", True)
-            except subprocess.CalledProcessError as e:
-                ffmpeg_span.record_exception(e)
-                ffmpeg_span.set_status(Status(StatusCode.ERROR, "FFmpeg transcoding failed"))
-                raise HTTPException(status_code=500, detail="Failed to process video with FFmpeg")
-
-        logging.info(f"VP: {time.time() - cur_time:.4f}s")
-
-        # Read video data
-        video_path = os.path.join(os.getcwd(), VIDEO_OUTPUT)
-        audio_path = os.path.join(os.getcwd(), AUDIO_OUTPUT)
-
-        cur_time = time.time()
-        with self.tracer.start_as_current_span("read_video") as read_span:
-            try:
-                data_filename = os.path.abspath(video_path)
-                start_ts = time.time()
-                video_tensors = read_video(data_filename, end_pts=10, pts_unit="sec")
-                try:
-                    video = video_tensors[0].numpy()
-                except (IndexError, TypeError, AttributeError) as ie:
-                    read_span.record_exception(ie)
-                    read_span.set_status(Status(StatusCode.ERROR, "Video stream missing"))
-                    raise HTTPException(status_code=500, detail="Failed to extract video stream from processed file")
-                duration = time.time() - start_ts
-                read_span.set_attribute("read_duration_seconds", duration)
+                video, audio, timings = read_raw_media(result_object_name)
+                read_span.set_attribute("media_mode", "raw")
+                read_span.set_attribute("audio_samples", len(audio))
+                read_span.set_attribute("video_frames", len(video))
+                for name, value in timings.items():
+                    read_span.set_attribute(name, value)
                 read_span.set_status(Status(StatusCode.OK))
-                logging.info(f"IP: {time.time() - cur_time:.4f}s")
-                return video, video_path, audio_path
+                # VP includes download and pipe processing; IP is array assembly.
+                logging.info(f"VP: {time.time() - cur_time - timings['assemble_seconds']:.4f}s")
+                logging.info(f"IP: {timings['assemble_seconds']:.4f}s")
+                return video, audio
             except Exception as e:
                 read_span.record_exception(e)
                 read_span.set_status(Status(StatusCode.ERROR, "Failed to read video data"))
                 raise HTTPException(status_code=500, detail="Failed to read video data")
 
-    def inference(self, X: np.ndarray, v_path: str, a_path: str) -> Optional[Any]:
+    def inference(self, X: np.ndarray, audio: np.ndarray) -> Optional[Any]:
         """
         Internal inference methods
         :param X: Input video data
-        :param v_path: Video path
-        :param a_path: Audio path
+        :param audio: Normalized 16 kHz mono int16 audio
         :return: output
         """
         if not self.initialized:
             raise HTTPException(status_code=503, detail="Model not initialized")
 
-        if X is None or v_path is None or a_path is None:
+        if X is None or audio is None:
             raise HTTPException(status_code=400, detail="Invalid input parameters")
 
         with self.tracer.start_as_current_span("model_inference") as span:
-            span.set_attribute("video_path", v_path)
-            span.set_attribute("audio_path", a_path)
+            span.set_attribute("video_frames", len(X))
+            span.set_attribute("audio_samples", len(audio))
             span.set_attribute("device", str(self.device))
             try:
                 self.model.eval()
                 with self.tracer.start_as_current_span("torch_inference"):
                     with torch.no_grad():
-                        y = self.model(X, v_path, a_path, self.device)
+                        y = self.model(X, audio, self.device)
                 span.set_attribute("prediction_success", True)
                 span.set_status(Status(StatusCode.OK))
                 return y
