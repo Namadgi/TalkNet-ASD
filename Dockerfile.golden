@@ -1,0 +1,8 @@
+# Preserve the baseline's exact dependencies, system codecs, and model weights.
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+USER root
+COPY --chown=appuser:appuser src/ /home/app/src/
+COPY --chown=appuser:appuser app.py docker-entrypoint.sh /home/app/
+RUN chmod +x /home/app/docker-entrypoint.sh
+USER appuser

@@ -19,7 +19,7 @@ class Mono(nn.Module):
             model=RetinaFacePredictor.get_model(model_name),
         )
 
-    def forward(self, X, v_path, a_path, device):
+    def forward(self, X, audio, device):
         cur_time = time.time()
         step = 10
         Y = []
@@ -32,7 +32,7 @@ class Mono(nn.Module):
             Y.append(bbox)
 
         print('FD:', time.time() - cur_time)
-        det_res = postprocess_det(Y, v_path, a_path)
+        det_res = postprocess_det(Y, X, audio)
         
         if isinstance(det_res, list):
             return []
@@ -59,4 +59,3 @@ class Mono(nn.Module):
         print('VI:', time.time() - cur_time)
         
         return all_scores
-        

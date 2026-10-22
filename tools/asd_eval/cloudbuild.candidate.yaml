@@ -1,0 +1,13 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --build-arg
+      - BASE_IMAGE=${_BASE_IMAGE}
+      - -f
+      - Dockerfile.golden
+      - -t
+      - ${_IMAGE}
+      - .
+images:
+  - ${_IMAGE}
