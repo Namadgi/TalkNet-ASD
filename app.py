@@ -67,6 +67,37 @@ mono_service = MonoService()
 # W3C Trace Context propagation
 from opentelemetry.propagate import extract
 
+# --- OpenTelemetry HTTP metrics (Cloud Monitoring) ---
+# Reuses the MeterProvider already configured by MonoService (service.name=ml-asd).
+from opentelemetry import metrics as _otel_metrics
+_otel_meter = _otel_metrics.get_meter(__name__)
+_http_request_duration = _otel_meter.create_histogram(
+    "http.server.request.duration", description="Duration of HTTP server requests", unit="s")
+_http_requests_in_flight = _otel_meter.create_up_down_counter(
+    "http.server.request.in_flight", description="In-flight HTTP server requests", unit="{request}")
+
+_METRICS_EXCLUDE_PATHS = {"/health", "/ready", "/metrics"}
+
+@app.middleware("http")
+async def _otel_http_metrics(request: Request, call_next):
+    path = request.url.path
+    if path in _METRICS_EXCLUDE_PATHS:
+        return await call_next(request)
+    method = request.method
+    _http_requests_in_flight.add(1, {"http.method": method})
+    start = time.time()
+    status_code = 500
+    try:
+        response = await call_next(request)
+        status_code = response.status_code
+        return response
+    finally:
+        _http_requests_in_flight.add(-1, {"http.method": method})
+        _http_request_duration.record(
+            time.time() - start,
+            {"http.status_class": f"{status_code // 100}xx", "http.method": method},
+        )
+
 @app.get("/health")
 async def health():
     return JSONResponse(content={"status": "healthy"})
