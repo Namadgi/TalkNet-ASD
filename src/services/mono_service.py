@@ -64,17 +64,9 @@ class MonoService:
         metrics.set_meter_provider(MeterProvider(metric_readers=[reader], resource=resource))
         self.meter = metrics.get_meter(__name__)
 
-        # Metric instruments
-        self.request_counter = self.meter.create_counter(
-            name="mono_requests_total",
-            description="Total number of MONO requests",
-            unit="1",
-        )
-        self.request_duration = self.meter.create_histogram(
-            name="mono_request_duration_seconds",
-            description="Duration of MONO requests",
-            unit="s",
-        )
+        # Metric instruments. HTTP-level request count + duration are now recorded
+        # by the app-level FastAPI middleware (http.server.request.*); keep the
+        # per-step histograms below, which the middleware does not capture.
         self.preprocess_duration = self.meter.create_histogram(
             name="mono_preprocess_duration_seconds",
             description="Duration of preprocessing operations",
@@ -154,8 +146,6 @@ class MonoService:
                     postprocess_span.set_attribute("response.score", response.score)
 
                 overall_duration = time.time() - overall_start_time
-                self.request_duration.record(overall_duration, {"status": "success", "response_code": response.code})
-                self.request_counter.add(1, {"status": "success", "response_code": response.code})
 
                 span.set_attribute("overall_duration_seconds", overall_duration)
                 span.set_attribute("response_code", response.code)
@@ -164,9 +154,6 @@ class MonoService:
                 span.set_status(Status(StatusCode.OK))
                 return response
             except Exception as e:
-                overall_duration = time.time() - locals().get("overall_start_time", time.time())
-                self.request_duration.record(overall_duration, {"status": "error", "response_code": 500})
-                self.request_counter.add(1, {"status": "error"})
                 span.record_exception(e)
                 span.set_status(Status(StatusCode.ERROR, str(e)))
                 span.set_attribute("error", True)
