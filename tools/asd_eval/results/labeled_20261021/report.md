@@ -66,7 +66,16 @@ algorithm. A fresh GPU run of the final image is still required before rollout.
 Concurrent request safety and the remaining cropped-face XVID roundtrip are
 separate work. Rollback uses a previously evaluated immutable image/revision.
 
-Run the `accuracy.py` command in the [evaluation README](../../README.md) to
-recompute all classification metrics and per-clip changes. The
+Recompute classification metrics and per-clip changes from the repository root:
+
+```bash
+python3 tools/asd_eval/accuracy.py \
+  --labels tools/asd_eval/results/labeled_20261021/labels.json \
+  --run production=tools/asd_eval/results/labeled_20261021/production.json \
+  --run raw=tools/asd_eval/results/labeled_20261021/raw.json \
+  --out /tmp/bm494-metrics.json
+```
+
+The
 [full experiment report](https://gravityfusion.atlassian.net/wiki/spaces/B/pages/4212621315)
 contains the conservative/hybrid comparisons and the complete evidence archive.
