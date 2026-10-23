@@ -1,4 +1,3 @@
-import os
 import cv2
 import time
 import numpy as np
@@ -96,29 +95,29 @@ def crop_video(track, frames, audio) -> dict:
         dets['s'].append(max((det[3] - det[1]), (det[2] - det[0])) / 2) 
         dets['y'].append((det[1] + det[3]) / 2) # crop center x 
         dets['x'].append((det[0] + det[2]) / 2) # crop center y
-    dets['s'] = signal.medfilt(dets['s'], kernel_size=13)  # Smooth detections 
+    dets['s'] = signal.medfilt(dets['s'], kernel_size=13)  # Smooth detections
     dets['x'] = signal.medfilt(dets['x'], kernel_size=13)
     dets['y'] = signal.medfilt(dets['y'], kernel_size=13)
 
-    vOut = cv2.VideoWriter(
-            'temp.avi', 
-            cv2.VideoWriter_fourcc(*'XVID'), 
-            25, 
-            (224, 224)
-        )# Write video
-    
+    if len(track['frame']) == 0:
+        raise ValueError('Track contains no frame indices')
+
+    # Collect the cropped face clips in memory. The previous XVID AVI roundtrip
+    # (encode then re-decode in preprocess_talk) added a lossy step, disk IO, and
+    # a shared temp.avi path that collided across concurrent requests.
+    faces = []
     for fidx, frame in enumerate(track['frame']):
         bs  = dets['s'][fidx]   # Detection box size
-        bsi = int(bs * (1 + 2 * CROP_SCALE))  # Pad videos by this amount 
+        bsi = int(bs * (1 + 2 * CROP_SCALE))  # Pad videos by this amount
         try:
-            # Raw normalization supplies RGB; the crop/encoder path uses BGR.
+            # Raw normalization supplies RGB; the crop path uses BGR.
             image = cv2.cvtColor(frames[frame], cv2.COLOR_RGB2BGR)
         except IndexError as e:
             raise IndexError(f'Frame index {frame} is outside the available range ({len(frames)} frames)') from e
         image = np.pad(
-                image, 
+                image,
                 ((bsi, bsi), (bsi, bsi), (0, 0)),
-                'constant', 
+                'constant',
                 constant_values=(110, 110)
             )
         my  = dets['y'][fidx] + bsi  # BBox center Y
@@ -127,41 +126,30 @@ def crop_video(track, frames, audio) -> dict:
                 int(my - bs)                    : int(my + bs * (1 + 2 * CROP_SCALE)),
                 int(mx - bs * (1 + CROP_SCALE)) : int(mx + bs * (1 + CROP_SCALE))
             ]
-        vOut.write(cv2.resize(face, (224, 224)))
-    vOut.release()
-    
-    if len(track['frame']) == 0:
-        raise ValueError('Track contains no frame indices')
+        faces.append(cv2.resize(face, (224, 224)))
 
     # Slice PCM to the face-track span: 16 kHz / 25 fps = 640 samples per frame.
-    # The cropped AVI is video-only; MFCC consumes the audio array directly.
     s0 = int(track['frame'][0]) * 640
     s1 = min((int(track['frame'][-1]) + 1) * 640, len(audio))
     audio_clip = audio[s0:s1]
 
-    video_path = os.path.join(os.getcwd(), 'temp.avi')
     return {
-            'video_path': video_path, 'audio': audio_clip
+            'video': np.array(faces), 'audio': audio_clip
         }
 
 def preprocess_talk(input_datas):
     # Take the input data and make it inference ready
-    video_path = input_datas['video_path']
+    video = input_datas['video']
     audio = input_datas['audio']
 
     audioFeature = python_speech_features.mfcc(audio, 16000, numcep = 13, winlen = 0.025, winstep = 0.010)
-    
+
     videoFeature = []
-    vidcap = cv2.VideoCapture(video_path)
-    while vidcap.isOpened():
-        ret, frames = vidcap.read()
-        if not ret:
-            break
-        face = cv2.cvtColor(frames, cv2.COLOR_BGR2GRAY)
+    for frame in video:
+        face = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         face = cv2.resize(face, (224, 224))
         face = face[224 // 4 : 224 * 3 // 4, 224 // 4 : 224 * 3 // 4]
         videoFeature.append(face)
-    vidcap.release()
     videoFeature = np.array(videoFeature)
     print(videoFeature.shape)
     length = min(
