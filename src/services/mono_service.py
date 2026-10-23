@@ -2,6 +2,11 @@ import json
 import logging
 import time
 import os
+import shutil
+import tempfile
+import urllib.request
+import urllib.error
+from concurrent.futures import ThreadPoolExecutor
 from fastapi import UploadFile, HTTPException
 import numpy as np
 import torch
@@ -13,7 +18,7 @@ from src.ml_models.raw_media import read_raw_media
 
 # OpenTelemetry imports
 import uuid
-from opentelemetry import trace, metrics
+from opentelemetry import trace, metrics, context as otel_context
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.metrics import MeterProvider
@@ -23,16 +28,31 @@ from opentelemetry.exporter.cloud_trace import CloudTraceSpanExporter
 from opentelemetry.exporter.cloud_monitoring import CloudMonitoringMetricsExporter
 from opentelemetry.trace import Status, StatusCode
 
-VIDEO_TEMP = 'input.mp4'
 
 class MonoService:
     def __init__(self):
         self.initialized = False
         self.device = None
         self.model = None
-        # self.processing_lock = asyncio.Lock()
+        # Pool sizes limit concurrently executing stages, not queued requests.
+        # Download/normalization runs up to ASD_CPU_WORKERS in parallel; the
+        # single inference worker serializes face detection, CPU face features,
+        # and TalkNet. Bound request admission separately in the serving config.
+        cpu_workers = max(1, int(os.getenv("ASD_CPU_WORKERS", "2")))
+        self._cpu_pool = ThreadPoolExecutor(max_workers=cpu_workers, thread_name_prefix="asd-cpu")
+        self._gpu_pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="asd-gpu")
         self._setup_telemetry()
         self.initialize()
+
+    @staticmethod
+    def _in_otel_context(ctx, fn, *args):
+        """Run fn inside a captured OTel context so spans created in a worker
+        thread nest under the request span (contextvars don't cross threads)."""
+        token = otel_context.attach(ctx)
+        try:
+            return fn(*args)
+        finally:
+            otel_context.detach(token)
 
     def _setup_telemetry(self) -> None:
         """Initialize OpenTelemetry tracer and meter for GCP."""
@@ -98,36 +118,55 @@ class MonoService:
             self.initialized = False
             raise HTTPException(status_code=500, detail="Failed to initialize model")
 
+    def _preprocess_stage(self, data: Any) -> Tuple[np.ndarray, np.ndarray]:
+        """CPU/IO stage: download + ffmpeg normalize. Runs in the CPU pool."""
+        with self.tracer.start_as_current_span("preprocess") as preprocess_span:
+            step_start_time = time.time()
+            X, audio = self.preprocess(data)
+            preprocess_duration = time.time() - step_start_time
+            self.preprocess_duration.record(preprocess_duration)
+            preprocess_span.set_attribute("duration_seconds", preprocess_duration)
+            preprocess_span.set_attribute("media_mode", "raw")
+            preprocess_span.set_attribute("audio_samples", len(audio))
+            return X, audio
+
+    def _inference_stage(self, X: np.ndarray, audio: np.ndarray) -> Any:
+        """GPU stage: face detection + TalkNet. Runs in the single-worker GPU pool."""
+        with self.tracer.start_as_current_span("inference") as inference_span:
+            step_start_time = time.time()
+            Y = self.inference(X, audio)
+            inference_duration = time.time() - step_start_time
+            self.inference_duration.record(inference_duration)
+            inference_span.set_attribute("duration_seconds", inference_duration)
+            return Y
+
     async def process_video(self, data: Any) -> ResponseModel:
         """
-        Asynchronously process video with telemetry instrumentation
+        Asynchronously process video with telemetry instrumentation.
+
+        Blocking stages run in bounded thread pools so the event loop stays free
+        and concurrent requests overlap: while one request holds the GPU, another
+        can be downloading/decoding on the CPU pool.
         """
-        # async with self.processing_lock:
+        loop = asyncio.get_running_loop()
         with self.tracer.start_as_current_span("mono_process_video") as span:
             try:
                 span.set_attribute("service.name", "mono_service")
                 span.set_attribute("operation", "process_video")
                 overall_start_time = time.time()
+                ctx = otel_context.get_current()
 
-                # Preprocess
-                with self.tracer.start_as_current_span("preprocess") as preprocess_span:
-                    step_start_time = time.time()
-                    X, audio = self.preprocess(data)
-                    preprocess_duration = time.time() - step_start_time
-                    self.preprocess_duration.record(preprocess_duration)
-                    preprocess_span.set_attribute("duration_seconds", preprocess_duration)
-                    preprocess_span.set_attribute("media_mode", "raw")
-                    preprocess_span.set_attribute("audio_samples", len(audio))
+                # Preprocess (CPU/IO pool)
+                X, audio = await loop.run_in_executor(
+                    self._cpu_pool, self._in_otel_context, ctx, self._preprocess_stage, data
+                )
 
-                # Inference
-                with self.tracer.start_as_current_span("inference") as inference_span:
-                    step_start_time = time.time()
-                    Y = self.inference(X, audio)
-                    inference_duration = time.time() - step_start_time
-                    self.inference_duration.record(inference_duration)
-                    inference_span.set_attribute("duration_seconds", inference_duration)
+                # Inference (GPU pool, serialized)
+                Y = await loop.run_in_executor(
+                    self._gpu_pool, self._in_otel_context, ctx, self._inference_stage, X, audio
+                )
 
-                # Postprocess + form response
+                # Postprocess + form response (light CPU, inline on the event loop)
                 with self.tracer.start_as_current_span("postprocess") as postprocess_span:
                     step_start_time = time.time()
                     if len(Y) == 0:
@@ -149,6 +188,14 @@ class MonoService:
                 span.set_attribute("score", response.score)
                 span.set_status(Status(StatusCode.OK))
                 return response
+            except HTTPException as e:
+                # Preserve the real status code (400/404/502/...) from the
+                # stages instead of masking everything as 500.
+                span.set_status(Status(StatusCode.ERROR, str(e.detail)))
+                span.set_attribute("error", True)
+                span.set_attribute("error_message", str(e.detail))
+                span.set_attribute("http_status", e.status_code)
+                raise
             except Exception as e:
                 span.record_exception(e)
                 span.set_status(Status(StatusCode.ERROR, str(e)))
@@ -167,89 +214,110 @@ class MonoService:
 
         cur_time = time.time()
 
-        if os.path.isfile(VIDEO_TEMP):
-            os.remove(VIDEO_TEMP)
-
-        if isinstance(data, UploadFile):
-            # Handle file upload
-            with self.tracer.start_as_current_span("upload_file_handling") as span:
-                span.set_attribute("input_type", "upload_file")
-                span.set_attribute("file_name", getattr(data, 'filename', 'unknown'))
-                start_ts = time.time()
-                with open(VIDEO_TEMP, 'wb') as out_file:
-                    content = data.file.read()
-                    out_file.write(content)
-                duration = time.time() - start_ts
-                span.set_attribute("upload_duration_seconds", duration)
-                span.set_attribute("file_size_bytes", len(content))
-            result_object_name = VIDEO_TEMP
-        else:
-            # Handle GCS request
-            with self.tracer.start_as_current_span("gcs_request_handling") as span:
-                try:
-                    gcs_request: GCSRequest = data
-                except Exception as e:
-                    span.record_exception(e)
-                    span.set_status(Status(StatusCode.ERROR, "Invalid GCS request format"))
-                    raise HTTPException(status_code=400, detail=f"Invalid GCS request format: {str(e)}")
-
-                if not gcs_request.instances or len(gcs_request.instances) == 0:
-                    span.set_status(Status(StatusCode.ERROR, "No instances provided"))
-                    raise HTTPException(status_code=400, detail="No instances provided in GCS request")
-
-                try:
-                    instance = gcs_request.instances[0]
-                except (IndexError, TypeError) as e:
-                    span.record_exception(e)
-                    span.set_status(Status(StatusCode.ERROR, "No usable instances provided"))
-                    raise HTTPException(status_code=400, detail="No valid instances provided in GCS request")
-                if not instance.token or not instance.bucket_name or not instance.object_name:
-                    span.set_status(Status(StatusCode.ERROR, "Missing GCS parameters"))
-                    raise HTTPException(status_code=400, detail="Missing required GCS parameters")
-
-                token = instance.token
-                bucket_name = instance.bucket_name
-                object_name = instance.object_name
-
-                span.set_attribute("gcs.bucket_name", bucket_name)
-                span.set_attribute("gcs.object_name", object_name)
-
-                object_encoded_name = object_name.replace('/', '%2F')
-                result_object_name = object_name.split('/')[-1]
-                curl_cmd = f'curl -X GET -H "Authorization: Bearer {token}" -o {result_object_name} ' + \
-                            f'"https://storage.googleapis.com/storage/v1/b/{bucket_name}/o/{object_encoded_name}?alt=media"'
-
-                with self.tracer.start_as_current_span("gcs_download") as download_span:
+        # Each request gets an isolated working directory so concurrent requests
+        # never share input/temp file paths. Removed on the way out.
+        work_dir = tempfile.mkdtemp(prefix="asd_")
+        try:
+            if isinstance(data, UploadFile):
+                # Handle file upload
+                with self.tracer.start_as_current_span("upload_file_handling") as span:
+                    span.set_attribute("input_type", "upload_file")
+                    span.set_attribute("file_name", getattr(data, 'filename', 'unknown'))
                     start_ts = time.time()
-                    exit_code = os.system(curl_cmd)
+                    media_path = os.path.join(work_dir, "input.mp4")
+                    with open(media_path, 'wb') as out_file:
+                        content = data.file.read()
+                        out_file.write(content)
                     duration = time.time() - start_ts
-                    if exit_code != 0:
-                        download_span.set_status(Status(StatusCode.ERROR, "GCS download failed"))
-                        download_span.set_attribute("curl_exit_code", exit_code)
-                        raise HTTPException(status_code=404, detail="Failed to download file from GCS")
-                    download_span.set_attribute("download_duration_seconds", duration)
-                    download_span.set_attribute("download_success", True)
+                    span.set_attribute("upload_duration_seconds", duration)
+                    span.set_attribute("file_size_bytes", len(content))
+            else:
+                # Handle GCS request
+                with self.tracer.start_as_current_span("gcs_request_handling") as span:
+                    try:
+                        gcs_request: GCSRequest = data
+                    except Exception as e:
+                        span.record_exception(e)
+                        span.set_status(Status(StatusCode.ERROR, "Invalid GCS request format"))
+                        raise HTTPException(status_code=400, detail=f"Invalid GCS request format: {str(e)}")
 
-        logging.info(f"DL: {time.time() - cur_time:.4f}s")
+                    if not gcs_request.instances or len(gcs_request.instances) == 0:
+                        span.set_status(Status(StatusCode.ERROR, "No instances provided"))
+                        raise HTTPException(status_code=400, detail="No instances provided in GCS request")
 
-        # Decode and normalize directly into raw arrays, avoiding an MP4 roundtrip.
-        with self.tracer.start_as_current_span("media_normalization") as read_span:
+                    try:
+                        instance = gcs_request.instances[0]
+                    except (IndexError, TypeError) as e:
+                        span.record_exception(e)
+                        span.set_status(Status(StatusCode.ERROR, "No usable instances provided"))
+                        raise HTTPException(status_code=400, detail="No valid instances provided in GCS request")
+                    if not instance.token or not instance.bucket_name or not instance.object_name:
+                        span.set_status(Status(StatusCode.ERROR, "Missing GCS parameters"))
+                        raise HTTPException(status_code=400, detail="Missing required GCS parameters")
+
+                    span.set_attribute("gcs.bucket_name", instance.bucket_name)
+                    span.set_attribute("gcs.object_name", instance.object_name)
+
+                    result_object_name = os.path.basename(instance.object_name) or "input.media"
+                    media_path = os.path.join(work_dir, result_object_name)
+                    self._download_gcs(
+                        instance.token, instance.bucket_name, instance.object_name, media_path
+                    )
+
+            logging.info(f"DL: {time.time() - cur_time:.4f}s")
+
+            # Decode and normalize directly into raw arrays, avoiding an MP4 roundtrip.
+            with self.tracer.start_as_current_span("media_normalization") as read_span:
+                try:
+                    video, audio, timings = read_raw_media(media_path)
+                    read_span.set_attribute("media_mode", "raw")
+                    read_span.set_attribute("audio_samples", len(audio))
+                    read_span.set_attribute("video_frames", len(video))
+                    for name, value in timings.items():
+                        read_span.set_attribute(name, value)
+                    read_span.set_status(Status(StatusCode.OK))
+                    # VP includes download and pipe processing; IP is array assembly.
+                    logging.info(f"VP: {time.time() - cur_time - timings['assemble_seconds']:.4f}s")
+                    logging.info(f"IP: {timings['assemble_seconds']:.4f}s")
+                    return video, audio
+                except HTTPException:
+                    raise
+                except Exception as e:
+                    read_span.record_exception(e)
+                    read_span.set_status(Status(StatusCode.ERROR, "Failed to read video data"))
+                    raise HTTPException(status_code=500, detail="Failed to read video data")
+        finally:
+            shutil.rmtree(work_dir, ignore_errors=True)
+
+    def _download_gcs(self, token: str, bucket_name: str, object_name: str, dest_path: str) -> None:
+        """Stream a GCS object to dest_path via an authenticated GET.
+
+        Uses urllib with list-free header args: the bearer token never reaches a
+        shell or a process argv, closing the injection and token-leak holes of
+        the previous os.system(curl) call.
+        """
+        object_encoded_name = object_name.replace('/', '%2F')
+        url = (
+            f"https://storage.googleapis.com/storage/v1/b/{bucket_name}"
+            f"/o/{object_encoded_name}?alt=media"
+        )
+        with self.tracer.start_as_current_span("gcs_download") as download_span:
+            start_ts = time.time()
+            request = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
             try:
-                video, audio, timings = read_raw_media(result_object_name)
-                read_span.set_attribute("media_mode", "raw")
-                read_span.set_attribute("audio_samples", len(audio))
-                read_span.set_attribute("video_frames", len(video))
-                for name, value in timings.items():
-                    read_span.set_attribute(name, value)
-                read_span.set_status(Status(StatusCode.OK))
-                # VP includes download and pipe processing; IP is array assembly.
-                logging.info(f"VP: {time.time() - cur_time - timings['assemble_seconds']:.4f}s")
-                logging.info(f"IP: {timings['assemble_seconds']:.4f}s")
-                return video, audio
-            except Exception as e:
-                read_span.record_exception(e)
-                read_span.set_status(Status(StatusCode.ERROR, "Failed to read video data"))
-                raise HTTPException(status_code=500, detail="Failed to read video data")
+                with urllib.request.urlopen(request, timeout=60) as response, \
+                        open(dest_path, 'wb') as out_file:
+                    shutil.copyfileobj(response, out_file)
+            except urllib.error.HTTPError as e:
+                download_span.set_status(Status(StatusCode.ERROR, "GCS download failed"))
+                download_span.set_attribute("http_status", e.code)
+                raise HTTPException(status_code=404, detail="Failed to download file from GCS")
+            except urllib.error.URLError as e:
+                download_span.record_exception(e)
+                download_span.set_status(Status(StatusCode.ERROR, "GCS download failed"))
+                raise HTTPException(status_code=502, detail="Failed to download file from GCS")
+            download_span.set_attribute("download_duration_seconds", time.time() - start_ts)
+            download_span.set_attribute("download_success", True)
 
     def inference(self, X: np.ndarray, audio: np.ndarray) -> Optional[Any]:
         """
