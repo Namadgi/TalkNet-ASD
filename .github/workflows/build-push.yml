@@ -1,0 +1,64 @@
+name: Build and Push ml-asd
+
+# Build the ml-asd image and push to Artifact Registry on merge to main.
+# Build runs in-runner (docker build on the checked-out tree), NOT Cloud Build:
+# the repo .gcloudignore excludes *.py and model_weights/, so `gcloud builds submit`
+# would upload a context with no source or weights. In-runner build uses the git tree.
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "src/**"
+      - "app.py"
+      - "Dockerfile"
+      - "requirements*.txt"
+      - ".github/workflows/build-push.yml"
+  workflow_dispatch:
+
+env:
+  REGION: us-central1
+  IMAGE: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/biometry-docker-repo/ml-asd
+
+jobs:
+  build-and-push:
+    permissions:
+      contents: "read"
+    environment: biometry
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          lfs: true
+
+      # CUDA + weights image is large. Reclaim runner disk first.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache/CodeQL
+          sudo docker image prune -af || true
+          df -h
+
+      - name: Google Auth
+        uses: "google-github-actions/auth@v2"
+        with:
+          credentials_json: "${{ secrets.GCP_SA_KEY }}"
+          token_format: "access_token"
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:${{ github.sha }}
+            ${{ env.IMAGE }}:latest
+          cache-from: type=registry,ref=${{ env.IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.IMAGE }}:buildcache,mode=max
