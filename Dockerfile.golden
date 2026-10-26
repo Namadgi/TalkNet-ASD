@@ -6,3 +6,7 @@ COPY --chown=appuser:appuser src/ /home/app/src/
 COPY --chown=appuser:appuser app.py docker-entrypoint.sh /home/app/
 RUN chmod +x /home/app/docker-entrypoint.sh
 USER appuser
+# Single worker: one model on the one GPU. The base image CMD may be --workers 2;
+# override so golden matches the in-process concurrency design (thread pools in
+# MonoService do the parallelism). See Dockerfile for rationale.
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1"]

@@ -2,9 +2,10 @@
 
 FFmpeg writes uncompressed YUV video and PCM16 audio into a timestamped NUT
 pipe. PyAV only unpacks raw frames (and converts YUV to RGB), not a second
-compressed video/audio stream. The face-crop AVI roundtrip is unchanged.
+compressed video/audio stream. Face crops remain in memory downstream.
 """
 
+import os
 import subprocess
 import tempfile
 import threading
@@ -20,6 +21,9 @@ from src.ml_models.audio import audio_to_pcm16
 FPS = 25
 SAMPLE_RATE = 16000
 END_SECONDS = 10
+# Output-codec thread setting; decoder and filter pools have separate settings.
+# This does not impose a total per-request CPU thread cap.
+FFMPEG_THREADS = os.getenv('ASD_FFMPEG_THREADS', '2')
 # read_video(end_pts=10) includes the frame at exactly 10.0 seconds. Allow
 # FFmpeg one extra frame; filter by PTS below, not by a rounded duration.
 OUTPUT_SECONDS = END_SECONDS + 2 / FPS
@@ -34,7 +38,7 @@ def raw_media_command(path: str):
         '-vf', 'scale=-2:640', '-r', str(FPS), '-vsync', 'cfr',
         '-c:v', 'rawvideo', '-pix_fmt', 'yuv420p',
         '-async', '1', '-ac', '1', '-ar', str(SAMPLE_RATE),
-        '-c:a', 'pcm_s16le', '-threads', '10',
+        '-c:a', 'pcm_s16le', '-threads', FFMPEG_THREADS,
         '-t', str(OUTPUT_SECONDS), '-f', 'nut', 'pipe:1',
     ]
     return cmd
