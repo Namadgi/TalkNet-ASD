@@ -31,7 +31,7 @@ RUN pip install -U pip setuptools
 # For CUDA  install 
 RUN export USE_CUDA=1
 ARG CUDA=1
-RUN if [ $CUDA==1 ]; then \ 
+RUN if [ "$CUDA" = "1" ]; then \ 
         pip install nvgpu; \
     fi
 

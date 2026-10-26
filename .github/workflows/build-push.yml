@@ -12,6 +12,7 @@ on:
       - "src/**"
       - "app.py"
       - "Dockerfile"
+      - "docker-entrypoint.sh"
       - "requirements*.txt"
       - ".github/workflows/build-push.yml"
   workflow_dispatch:
