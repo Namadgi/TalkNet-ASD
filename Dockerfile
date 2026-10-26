@@ -31,7 +31,7 @@ RUN pip install -U pip setuptools
 # For CUDA  install 
 RUN export USE_CUDA=1
 ARG CUDA=1
-RUN if [ "$CUDA" = "1" ]; then \ 
+RUN if [ "$CUDA" = "1" ]; then \
         pip install nvgpu; \
     fi
 
@@ -122,6 +122,10 @@ USER appuser
 # Expose port for FastAPI
 EXPOSE 8080
 
-# Run the application
+# Run the application.
+# Single worker: one process owns the one model on the one GPU. In-process
+# concurrency comes from the event loop + the stage-bounded thread pools in
+# MonoService (ASD_CPU_WORKERS CPU threads, 1 GPU thread). A second worker would
+# duplicate the model in VRAM and break GPU serialization.
 ENTRYPOINT ["/home/app/docker-entrypoint.sh"]
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "2"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1"]

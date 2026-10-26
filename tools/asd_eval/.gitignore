@@ -1,0 +1,13 @@
+clips_cache/
+__pycache__/
+# Keep only the frozen labeled comparison in source control.
+results/*
+!results/labeled_20261021/
+results/labeled_20261021/*
+!results/labeled_20261021/labels.json
+!results/labeled_20261021/manifest.json
+!results/labeled_20261021/production.json
+!results/labeled_20261021/raw.json
+!results/labeled_20261021/staging.json
+!results/labeled_20261021/report.md
+RESUME.md

@@ -1,11 +1,8 @@
-import os
 import cv2
 import time
-import subprocess
 import numpy as np
 import python_speech_features
 from scipy import signal
-from scipy.io import wavfile
 from scipy.interpolate import interp1d
 
 IOU_THRESHOLD = 0.5
@@ -15,7 +12,7 @@ MIN_FACE_SIZE = 1
 THRESHOLD = 0.9
 CROP_SCALE = 0.4
 
-def postprocess_det(Y, v_path, a_path) -> dict:
+def postprocess_det(Y, frames, audio) -> dict:
     res_bboxes = []
     for frame_n, bboxes in enumerate(Y):
         # TODO something with multiple or zero faces
@@ -28,7 +25,7 @@ def postprocess_det(Y, v_path, a_path) -> dict:
         return []
     cur_time = time.time()
     try:
-        res = crop_video(track, v_path, a_path)
+        res = crop_video(track, frames, audio)
     except (IndexError, KeyError, ValueError) as crop_err:
         print(f'Crop guard hit: {crop_err}')
         return []
@@ -88,7 +85,7 @@ def __bb_intersection_over_union(boxA, boxB):
     return iou
 
 
-def crop_video(track, video_path, audio_path) -> dict:
+def crop_video(track, frames, audio) -> dict:
     # CPU: crop the face clips
 
     dets = {'x': [], 'y': [], 's': []}
@@ -98,51 +95,29 @@ def crop_video(track, video_path, audio_path) -> dict:
         dets['s'].append(max((det[3] - det[1]), (det[2] - det[0])) / 2) 
         dets['y'].append((det[1] + det[3]) / 2) # crop center x 
         dets['x'].append((det[0] + det[2]) / 2) # crop center y
-    dets['s'] = signal.medfilt(dets['s'], kernel_size=13)  # Smooth detections 
+    dets['s'] = signal.medfilt(dets['s'], kernel_size=13)  # Smooth detections
     dets['x'] = signal.medfilt(dets['x'], kernel_size=13)
     dets['y'] = signal.medfilt(dets['y'], kernel_size=13)
 
-    vidcap = cv2.VideoCapture(video_path)
-    frames = []
-    counter = 1
-    ret, frame = vidcap.read()
-    while ret:
-        frames.append(frame)
-        ret, frame = vidcap.read()
-        counter += 1
-    vidcap.release()
-    
-    # command = 'mkdir frames &&' +\
-    #          f'ffmpeg -i {video_path} frames/%04d.bmp'
-    # os.system(command)
+    if len(track['frame']) == 0:
+        raise ValueError('Track contains no frame indices')
 
-    # files = sorted(os.listdir('frames'))
-    # frames = []
-    # for f in files:
-    #     frame = cv2.imread(f'frames/{f}')
-    #     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    #     frames.append(frame)
-    
-    # os.system('rm -r frames')
-
-    vOut = cv2.VideoWriter(
-            'temp.avi', 
-            cv2.VideoWriter_fourcc(*'XVID'), 
-            25, 
-            (224, 224)
-        )# Write video
-    
+    # Collect the cropped face clips in memory. The previous XVID AVI roundtrip
+    # (encode then re-decode in preprocess_talk) added a lossy step, disk IO, and
+    # a shared temp.avi path that collided across concurrent requests.
+    faces = []
     for fidx, frame in enumerate(track['frame']):
         bs  = dets['s'][fidx]   # Detection box size
-        bsi = int(bs * (1 + 2 * CROP_SCALE))  # Pad videos by this amount 
+        bsi = int(bs * (1 + 2 * CROP_SCALE))  # Pad videos by this amount
         try:
-            image = frames[frame]
+            # Raw normalization supplies RGB; the crop path uses BGR.
+            image = cv2.cvtColor(frames[frame], cv2.COLOR_RGB2BGR)
         except IndexError as e:
             raise IndexError(f'Frame index {frame} is outside the available range ({len(frames)} frames)') from e
         image = np.pad(
-                image, 
+                image,
                 ((bsi, bsi), (bsi, bsi), (0, 0)),
-                'constant', 
+                'constant',
                 constant_values=(110, 110)
             )
         my  = dets['y'][fidx] + bsi  # BBox center Y
@@ -151,50 +126,30 @@ def crop_video(track, video_path, audio_path) -> dict:
                 int(my - bs)                    : int(my + bs * (1 + 2 * CROP_SCALE)),
                 int(mx - bs * (1 + CROP_SCALE)) : int(mx + bs * (1 + CROP_SCALE))
             ]
-        vOut.write(cv2.resize(face, (224, 224)))
-    vOut.release()
-    
-    video_out  = 'sync.avi' 
-    audio_out  = 'sync.wav'
-    if len(track['frame']) == 0:
-        raise ValueError('Track contains no frame indices')
-    audioStart = (track['frame'][0]) / 25
-    audioEnd   = (track['frame'][-1]+1) / 25
-    
-    command = ("ffmpeg -y -i %s -async 1 -ac 1 -vn -acodec pcm_s16le -ar 16000 -threads 10 -ss %.3f -to %.3f %s -loglevel panic" % \
-              (audio_path, audioStart, audioEnd, audio_out)) 
-    output = subprocess.call(command, shell=True, stdout=None) # Crop audio file
+        faces.append(cv2.resize(face, (224, 224)))
 
-    command = ("ffmpeg -y -i temp.avi -i %s -threads 10 -c:v copy -c:a copy %s -loglevel panic" % \
-              (audio_out, video_out)) # Combine audio and video file
-    output = subprocess.call(command, shell=True, stdout=None)
-    
-    # os.remove('temp.avi')
-    video_path = os.path.join(os.getcwd(), video_out)
-    audio_path = os.path.join(os.getcwd(), audio_out)
+    # Slice PCM to the face-track span: 16 kHz / 25 fps = 640 samples per frame.
+    s0 = int(track['frame'][0]) * 640
+    s1 = min((int(track['frame'][-1]) + 1) * 640, len(audio))
+    audio_clip = audio[s0:s1]
+
     return {
-            'video_path': video_path, 'audio_path': audio_path
+            'video': np.array(faces), 'audio': audio_clip
         }
 
 def preprocess_talk(input_datas):
     # Take the input data and make it inference ready
-    video_path = input_datas['video_path']
-    audio_path = input_datas['audio_path']
-    
-    _, audio = wavfile.read(audio_path)
+    video = input_datas['video']
+    audio = input_datas['audio']
+
     audioFeature = python_speech_features.mfcc(audio, 16000, numcep = 13, winlen = 0.025, winstep = 0.010)
-    
+
     videoFeature = []
-    vidcap = cv2.VideoCapture(video_path)
-    while vidcap.isOpened():
-        ret, frames = vidcap.read()
-        if not ret:
-            break
-        face = cv2.cvtColor(frames, cv2.COLOR_BGR2GRAY)
+    for frame in video:
+        face = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         face = cv2.resize(face, (224, 224))
         face = face[224 // 4 : 224 * 3 // 4, 224 // 4 : 224 * 3 // 4]
         videoFeature.append(face)
-    vidcap.release()
     videoFeature = np.array(videoFeature)
     print(videoFeature.shape)
     length = min(
