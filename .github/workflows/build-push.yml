@@ -18,13 +18,12 @@ on:
 
 env:
   REGION: us-central1
-  IMAGE: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/biometry-docker-repo/ml-asd
+  IMAGE: us-central1-docker.pkg.dev/biometry-416410/biometry-docker-repo/ml-asd
 
 jobs:
   build-and-push:
     permissions:
       contents: "read"
-    environment: biometry
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
