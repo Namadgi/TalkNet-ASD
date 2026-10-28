@@ -7,6 +7,10 @@ set -e
 umask 077
 
 CRED_PATH="/tmp/gcp.json"
+# Remove any pre-existing file first: redirection (`>`) truncates but keeps an
+# existing file's mode, so without this a stale 0644 could survive the umask.
+# Creating it fresh guarantees mode 0600 with no world-readable window.
+rm -f "$CRED_PATH"
 
 if [ -n "$GCP_SA_KEY_B64" ]; then
   echo "$GCP_SA_KEY_B64" | base64 -d > "$CRED_PATH"
