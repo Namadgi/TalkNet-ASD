@@ -102,7 +102,9 @@ WORKDIR /home/app
 COPY src/ /home/app/src/
 COPY app.py /home/app/
 COPY docker-entrypoint.sh /home/app/docker-entrypoint.sh
-RUN chmod +x /home/app/docker-entrypoint.sh
+# Strip any CR so a CRLF-checked-out script can't break the #!/bin/sh shebang
+# (exec: no such file or directory). Belt-and-suspenders with .gitattributes.
+RUN sed -i 's/\r$//' /home/app/docker-entrypoint.sh && chmod +x /home/app/docker-entrypoint.sh
 
 # Configure OpenTelemetry env (sane defaults; override at deploy time)
 ENV OTEL_ENV=gcp
