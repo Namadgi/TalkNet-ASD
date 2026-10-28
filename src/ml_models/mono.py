@@ -10,7 +10,9 @@ from ibug.face_detection import RetinaFacePredictor
 class Mono(nn.Module):
     def __init__(self) -> None:
         super().__init__()
-        device = 'cuda'
+        # BM-501 #4: derive device from availability so the model is CPU-portable
+        # (RetinaFacePredictor below runs on whatever this resolves to).
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
         model_name = 'mobilenet0.25'
         self.talk = TalkNet()
         self.refd = RetinaFacePredictor(

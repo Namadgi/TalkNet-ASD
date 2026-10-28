@@ -114,7 +114,10 @@ ENV OTEL_METRICS_EXPORTER=cloud_monitoring
 RUN useradd -m appuser && \
     chown -R appuser:appuser /home/app
 
-ENV GOOGLE_CLOUD_PROJECT=biometry-416410
+# BM-501 #5: PROJECT_ID is overridable at build time (--build-arg PROJECT_ID=...)
+# while keeping the current default; GOOGLE_CLOUD_PROJECT derives from it.
+ARG PROJECT_ID=biometry-416410
+ENV GOOGLE_CLOUD_PROJECT=${PROJECT_ID}
 
 # Switch to non-root user
 USER appuser
