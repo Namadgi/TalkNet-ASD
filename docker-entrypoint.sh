@@ -1,8 +1,16 @@
 #!/bin/sh
 set -e
 
-# Materialize GCP service account credentials from environment variables
+# Materialize GCP service account credentials from environment variables.
+# BM-511: tighten umask BEFORE writing so the cred file is created mode 0600
+# (umask-before-write, not chmod-after, to avoid a world-readable window).
+umask 077
+
 CRED_PATH="/tmp/gcp.json"
+# Remove any pre-existing file first: redirection (`>`) truncates but keeps an
+# existing file's mode, so without this a stale 0644 could survive the umask.
+# Creating it fresh guarantees mode 0600 with no world-readable window.
+rm -f "$CRED_PATH"
 
 if [ -n "$GCP_SA_KEY_B64" ]; then
   echo "$GCP_SA_KEY_B64" | base64 -d > "$CRED_PATH"

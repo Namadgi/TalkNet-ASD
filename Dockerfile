@@ -102,7 +102,9 @@ WORKDIR /home/app
 COPY src/ /home/app/src/
 COPY app.py /home/app/
 COPY docker-entrypoint.sh /home/app/docker-entrypoint.sh
-RUN chmod +x /home/app/docker-entrypoint.sh
+# Strip any CR so a CRLF-checked-out script can't break the #!/bin/sh shebang
+# (exec: no such file or directory). Belt-and-suspenders with .gitattributes.
+RUN sed -i 's/\r$//' /home/app/docker-entrypoint.sh && chmod +x /home/app/docker-entrypoint.sh
 
 # Configure OpenTelemetry env (sane defaults; override at deploy time)
 ENV OTEL_ENV=gcp
@@ -114,7 +116,10 @@ ENV OTEL_METRICS_EXPORTER=cloud_monitoring
 RUN useradd -m appuser && \
     chown -R appuser:appuser /home/app
 
-ENV GOOGLE_CLOUD_PROJECT=biometry-416410
+# BM-501 #5: PROJECT_ID is overridable at build time (--build-arg PROJECT_ID=...)
+# while keeping the current default; GOOGLE_CLOUD_PROJECT derives from it.
+ARG PROJECT_ID=biometry-416410
+ENV GOOGLE_CLOUD_PROJECT=${PROJECT_ID}
 
 # Switch to non-root user
 USER appuser
